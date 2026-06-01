@@ -88,7 +88,7 @@ public class YahooFinanceService {
         String name = meta.getString("longName");
         String symbol = meta.getString("symbol");
 
-        String exchangeTimezone = meta.getString("timezone");
+        String exchangeTimezone = meta.getString("exchangeTimezoneName");
 
         BigDecimal currentPrice;
 
