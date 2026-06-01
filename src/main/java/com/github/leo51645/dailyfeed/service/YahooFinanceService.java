@@ -90,7 +90,12 @@ public class YahooFinanceService {
 
         String exchangeTimezone = meta.getString("exchangeTimezoneName");
 
-        BigDecimal currentPrice;
+        // market open?
+        // if the current time lies between the start time and the close time the market is open
+        long now = Instant.now().getEpochSecond();
+        long start = meta.getJSONObject("currentTradingPeriod").getJSONObject("regular").getLong("start");
+        long end = meta.getJSONObject("currentTradingPeriod").getJSONObject("regular").getLong("end");
+        boolean marketOpen = now >= start && now <= end;
 
         // for each day in the response but starting on the 2. day
         for (int i = 1; i < timestamps.length(); i++) {
@@ -98,8 +103,11 @@ public class YahooFinanceService {
                     .atZone(ZoneId.of(exchangeTimezone))
                     .toLocalDate();
 
+            BigDecimal currentPrice;
+            boolean isLastEntry = i == timestamps.length() - 1;
+
             // if day is today take the price from the market that is still open
-            if (i == timestamps.length() - 1) {
+            if (isLastEntry && marketOpen) {
                 currentPrice = BigDecimal.valueOf(meta.getDouble("regularMarketPrice"));
             } else {
                 currentPrice = BigDecimal.valueOf(close.getDouble(i));
@@ -115,14 +123,13 @@ public class YahooFinanceService {
                     .previousDayClosePrice(previousClosePrice)
                     .build();
 
-            boolean isToday = date.equals(LocalDate.now(ZoneId.of(exchangeTimezone)));
-
+            // calculate percentage difference in comparison to the day before
             BigDecimal changePercent = currentPrice
                     .subtract(previousClosePrice)
                     .divide(previousClosePrice, 2, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100));
 
-            if (isToday) {
+            if (isLastEntry && marketOpen) {
                 dto.setChangePercentIntraday(changePercent);
             } else {
                 dto.setChangePercentClosedMarket(changePercent);
