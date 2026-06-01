@@ -1,9 +1,12 @@
 package com.github.leo51645.dailyfeed.domain.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum Assets {
     APPLE("AAPL"),
     MICROSOFT("MSFT"),
-    GOOGLE("GOOGL"), // alternativ auch GOOG
+    GOOGLE("GOOGL"),
     AMAZON("AMZN"),
     META("META"),
     NVIDIA("NVDA"),
