@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -122,10 +121,7 @@ public class YahooFinanceService {
                     .build();
 
             // calculate percentage difference in comparison to the day before
-            BigDecimal changePercent = currentPrice
-                    .subtract(previousClosePrice)
-                    .divide(previousClosePrice, 2, RoundingMode.HALF_UP)
-                    .multiply(BigDecimal.valueOf(100));
+            BigDecimal changePercent = yahooFinanceUtil.percentageDifference(currentPrice, previousClosePrice);
 
             if (isLastEntry && marketOpen) {
                 dto.setChangePercentIntraday(changePercent);
@@ -165,13 +161,12 @@ public class YahooFinanceService {
     }
 
     public AssetResponseDto getLastTradingDayAsset(Assets asset) {
-        HttpResponse<String> response = getHttpAssetResponse(asset);
-        List<AssetResponseDto> assetResponses = parseResponse(response.body());
+        Map<Assets, List<AssetResponseDto>> assets = getAllAssets();
 
-        if (assetResponses.isEmpty()) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.statusCode()); // TODO: Exception Handling
+        if (assets.isEmpty()) {
+            throw new IllegalArgumentException(); // TODO: Exception Handling
         }
 
-        return assetResponses.getLast();
+        return assets.get(asset).getLast();
     }
 }
