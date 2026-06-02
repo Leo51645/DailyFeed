@@ -20,7 +20,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -136,6 +138,20 @@ public class YahooFinanceService {
             }
 
             assets.add(dto);
+        }
+
+        return assets;
+    }
+
+    public Map<Assets, List<AssetResponseDto>> getAllAssets() {
+
+        Map<Assets, List<AssetResponseDto>> assets = new HashMap<>();
+
+        for (Assets asset : Assets.values()) {
+            HttpResponse<String> response = getHttpAssetResponse(asset);
+            List<AssetResponseDto> assetResponses = parseResponse(response.body());
+
+            assets.put(asset, assetResponses);
         }
 
         return assets;
