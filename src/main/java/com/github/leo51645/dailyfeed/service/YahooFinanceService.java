@@ -19,10 +19,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -34,8 +31,6 @@ public class YahooFinanceService {
 
     private HttpResponse<String> getHttpAssetResponse(Assets asset) {
         URI uri = URI.create(yahooFinanceUtil.createYahooFinanceRequestURI(asset));
-
-
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(uri)
@@ -121,6 +116,7 @@ public class YahooFinanceService {
                     .name(name)
                     .symbol(symbol)
                     .date(date)
+                    .exchangeTimezone(exchangeTimezone)
                     .currentPrice(currentPrice)
                     .previousDayClosePrice(previousClosePrice)
                     .build();
@@ -155,5 +151,27 @@ public class YahooFinanceService {
         }
 
         return assets;
+    }
+
+    public Map<Assets, AssetResponseDto> getLastTradingDayAssets() {
+        Map<Assets, AssetResponseDto> assets = new HashMap<>();
+
+        for (Assets asset : Assets.values()) {
+            AssetResponseDto assetDto = getLastTradingDayAsset(asset);
+            assets.put(asset, assetDto);
+        }
+
+        return assets;
+    }
+
+    public AssetResponseDto getLastTradingDayAsset(Assets asset) {
+        HttpResponse<String> response = getHttpAssetResponse(asset);
+        List<AssetResponseDto> assetResponses = parseResponse(response.body());
+
+        if (assetResponses.isEmpty()) {
+            throw new RuntimeException("Failed : HTTP error code : " + response.statusCode()); // TODO: Exception Handling
+        }
+
+        return assetResponses.getLast();
     }
 }

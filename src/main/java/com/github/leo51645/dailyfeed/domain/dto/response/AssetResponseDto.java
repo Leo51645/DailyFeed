@@ -11,6 +11,7 @@ public class AssetResponseDto {
     private String name;
     private String symbol;
     private LocalDate date;
+    private String exchangeTimezone;
 
     private BigDecimal currentPrice;
     private BigDecimal previousDayClosePrice;
