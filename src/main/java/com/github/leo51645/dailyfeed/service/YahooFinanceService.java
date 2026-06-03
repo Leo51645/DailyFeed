@@ -70,8 +70,8 @@ public class YahooFinanceService {
 
         String exchangeTimezone = meta.getString("exchangeTimezoneName");
 
-        // for each day in the response but starting on the 2. day
-        for (int i = 1; i < timestamps.length(); i++) {
+        // for each day in the response but starting on the 2. day, excluding the last (handled by parseLastTradingDayAsset)
+        for (int i = 1; i < timestamps.length() - 1; i++) {
             LocalDate date = Instant.ofEpochSecond(timestamps.getLong(i))
                     .atZone(ZoneId.of(exchangeTimezone))
                     .toLocalDate();
@@ -151,9 +151,13 @@ public class YahooFinanceService {
         Map<Assets, JSONObject> roots = new HashMap<>();
 
         for (Assets asset : Assets.values()) {
-            HttpResponse<String> httpResponse = getHttpAssetResponse(asset);
-            JSONObject root = new JSONObject(httpResponse.body());
-            roots.put(asset, root);
+            try {
+                HttpResponse<String> httpResponse = getHttpAssetResponse(asset);
+                JSONObject root = new JSONObject(httpResponse.body());
+                roots.put(asset, root);
+            } catch (RuntimeException e) {
+                System.err.println("Failed to fetch data for " + asset.name() + ": " + e.getMessage());
+            }
         }
 
         Map<Assets, List<AssetResponseDto>> historicalAssets = getHistoricalAssets(roots);
