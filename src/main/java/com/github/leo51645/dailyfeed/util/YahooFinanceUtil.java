@@ -1,6 +1,8 @@
 package com.github.leo51645.dailyfeed.util;
 
 import com.github.leo51645.dailyfeed.domain.enums.Assets;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -25,4 +27,31 @@ public class YahooFinanceUtil {
                 .divide(previousClosePrice, 2, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
     }
+
+    // Methods to get the data from the response
+    public JSONObject getMetaData(JSONObject root) {
+        return root
+                .getJSONObject("chart")
+                .getJSONArray("result")
+                .getJSONObject(0)
+                .getJSONObject("meta");
+    }
+    public JSONArray getTimestamps(JSONObject root) {
+        return root
+                .getJSONObject("chart")
+                .getJSONArray("result")
+                .getJSONObject(0)
+                .getJSONArray("timestamp");
+    }
+    public JSONArray getClose(JSONObject root) {
+        return root
+                .getJSONObject("chart")
+                .getJSONArray("result")
+                .getJSONObject(0)
+                .getJSONObject("indicators")
+                .getJSONArray("quote")
+                .getJSONObject(0)
+                .getJSONArray("close");
+    }
+
 }

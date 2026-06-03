@@ -24,7 +24,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class YahooFinanceService {
 
-    public final YahooFinanceUtil yahooFinanceUtil;
+    private final YahooFinanceUtil yahooFinanceUtil;
 
     private final HttpClient client = HttpClient.newHttpClient();
 
@@ -58,30 +58,12 @@ public class YahooFinanceService {
     }
 
     // parses http response into Dto's
-    private List<AssetResponseDto> parseHistoricalAssets(String responseBody) {
-        JSONObject root = new JSONObject(responseBody);
+    private List<AssetResponseDto> parseHistoricalAssets(JSONObject root) {
         List<AssetResponseDto> assets = new ArrayList<>();
 
-        JSONObject meta = root
-                .getJSONObject("chart")
-                .getJSONArray("result")
-                .getJSONObject(0)
-                .getJSONObject("meta");
-
-        JSONArray timestamps = root
-                .getJSONObject("chart")
-                .getJSONArray("result")
-                .getJSONObject(0)
-                .getJSONArray("timestamp");
-
-        JSONArray close = root
-                .getJSONObject("chart")
-                .getJSONArray("result")
-                .getJSONObject(0)
-                .getJSONObject("indicators")
-                .getJSONArray("quote")
-                .getJSONObject(0)
-                .getJSONArray("close");
+        JSONObject meta = yahooFinanceUtil.getMetaData(root);
+        JSONArray timestamps = yahooFinanceUtil.getTimestamps(root);
+        JSONArray close = yahooFinanceUtil.getClose(root);
 
         String name = meta.getString("longName");
         String symbol = meta.getString("symbol");
@@ -116,29 +98,11 @@ public class YahooFinanceService {
 
         return assets;
     }
-    private AssetResponseDto parseLastTradingDayAsset(String responseBody) {
-        JSONObject root = new JSONObject(responseBody);
+    private AssetResponseDto parseLastTradingDayAsset(JSONObject root) {
 
-        JSONObject meta = root
-                .getJSONObject("chart")
-                .getJSONArray("result")
-                .getJSONObject(0)
-                .getJSONObject("meta");
-
-        JSONArray timestamps = root
-                .getJSONObject("chart")
-                .getJSONArray("result")
-                .getJSONObject(0)
-                .getJSONArray("timestamp");
-
-        JSONArray close = root
-                .getJSONObject("chart")
-                .getJSONArray("result")
-                .getJSONObject(0)
-                .getJSONObject("indicators")
-                .getJSONArray("quote")
-                .getJSONObject(0)
-                .getJSONArray("close");
+        JSONObject meta = yahooFinanceUtil.getMetaData(root);
+        JSONArray timestamps = yahooFinanceUtil.getTimestamps(root);
+        JSONArray close = yahooFinanceUtil.getClose(root);
 
         int lastIndex = timestamps.length() - 1;
 
@@ -184,9 +148,18 @@ public class YahooFinanceService {
     }
 
     public Map<Assets, List<AssetResponseDto>> getAllAssets() {
-        Map<Assets, List<AssetResponseDto>> historicalAssets = getHistoricalAssets();
-        Map<Assets, AssetResponseDto> lastTradingDayAssets = getLastTradingDayAssets();
+        Map<Assets, JSONObject> roots = new HashMap<>();
 
+        for (Assets asset : Assets.values()) {
+            HttpResponse<String> httpResponse = getHttpAssetResponse(asset);
+            JSONObject root = new JSONObject(httpResponse.body());
+            roots.put(asset, root);
+        }
+
+        Map<Assets, List<AssetResponseDto>> historicalAssets = getHistoricalAssets(roots);
+        Map<Assets, AssetResponseDto> lastTradingDayAssets = getLastTradingDayAssets(roots);
+
+        // for each value list in the map a dto is getting added on top
         for (Map.Entry<Assets, List<AssetResponseDto>> entry : historicalAssets.entrySet()) {
             Assets asset = entry.getKey();
             List<AssetResponseDto> assets = entry.getValue();
@@ -200,32 +173,33 @@ public class YahooFinanceService {
         return historicalAssets;
     }
 
-    public Map<Assets, List<AssetResponseDto>> getHistoricalAssets() {
+    public Map<Assets, List<AssetResponseDto>> getHistoricalAssets(Map<Assets, JSONObject> roots) {
         Map<Assets, List<AssetResponseDto>> assets = new HashMap<>();
 
-        for (Assets asset : Assets.values()) {
-            HttpResponse<String> response = getHttpAssetResponse(asset);
-            List<AssetResponseDto> historicalAssets = parseHistoricalAssets(response.body());
+        // for each value in the map the value is being parsed and then put into a results map
+        for (Map.Entry<Assets, JSONObject> entry : roots.entrySet()) {
+            Assets asset = entry.getKey();
+            JSONObject root = entry.getValue();
 
-            assets.put(asset, historicalAssets);
+            List<AssetResponseDto> responseList = parseHistoricalAssets(root);
+            assets.put(asset, responseList);
         }
 
         return assets;
     }
 
-    public Map<Assets, AssetResponseDto> getLastTradingDayAssets() {
+    public Map<Assets, AssetResponseDto> getLastTradingDayAssets(Map<Assets, JSONObject> roots) {
         Map<Assets, AssetResponseDto> assets = new HashMap<>();
 
-        for (Assets asset : Assets.values()) {
-            AssetResponseDto assetDto = getLastTradingDayAsset(asset);
+        // for each value in the map the value is being parsed and then put into a results map
+        for (Map.Entry<Assets, JSONObject> entry : roots.entrySet()) {
+            Assets asset = entry.getKey();
+            JSONObject root = entry.getValue();
+
+            AssetResponseDto assetDto = parseLastTradingDayAsset(root);
             assets.put(asset, assetDto);
         }
 
         return assets;
-    }
-
-    private AssetResponseDto getLastTradingDayAsset(Assets asset) {
-        HttpResponse<String> response = getHttpAssetResponse(asset);
-        return parseLastTradingDayAsset(response.body());
     }
 }
