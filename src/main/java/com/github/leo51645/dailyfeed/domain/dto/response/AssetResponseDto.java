@@ -19,4 +19,6 @@ public class AssetResponseDto {
     private BigDecimal changePercentClosedMarket;
     private BigDecimal changePercentIntraday;
 
+    private boolean marketClosed;
+
 }

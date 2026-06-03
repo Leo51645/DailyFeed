@@ -5,12 +5,17 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class YahooFinanceUtil {
     public String createYahooFinanceRequestURI(Assets asset) {
+
+        String encodedSymbol = URLEncoder.encode(asset.getSymbol(), StandardCharsets.UTF_8);
+
         return "https://query1.finance.yahoo.com/v8/finance/chart/"
-                + asset.getSymbol()
+                + encodedSymbol
                 + "?range=6d&interval=1d&includePrePost=false&events=history&corsDomain=finance.yahoo.com";
     }
 
