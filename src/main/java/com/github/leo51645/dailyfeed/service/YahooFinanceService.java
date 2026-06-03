@@ -58,14 +58,14 @@ public class YahooFinanceService {
     }
 
     // parses http response into Dto's
-    private List<AssetResponseDto> parseHistoricalAssets(JSONObject root) {
+    private List<AssetResponseDto> parseHistoricalAssets(JSONObject root, Assets asset) {
         List<AssetResponseDto> assets = new ArrayList<>();
 
         JSONObject meta = yahooFinanceUtil.getMetaData(root);
         JSONArray timestamps = yahooFinanceUtil.getTimestamps(root);
         JSONArray close = yahooFinanceUtil.getClose(root);
 
-        String name = meta.getString("longName");
+        String name = asset.getDisplayName();
         String symbol = meta.getString("symbol");
 
         String exchangeTimezone = meta.getString("exchangeTimezoneName");
@@ -98,7 +98,7 @@ public class YahooFinanceService {
 
         return assets;
     }
-    private AssetResponseDto parseLastTradingDayAsset(JSONObject root) {
+    private AssetResponseDto parseLastTradingDayAsset(JSONObject root, Assets asset) {
 
         JSONObject meta = yahooFinanceUtil.getMetaData(root);
         JSONArray timestamps = yahooFinanceUtil.getTimestamps(root);
@@ -106,7 +106,7 @@ public class YahooFinanceService {
 
         int lastIndex = timestamps.length() - 1;
 
-        String name = meta.getString("longName");
+        String name = asset.getDisplayName();
         String symbol = meta.getString("symbol");
 
         String exchangeTimezone = meta.getString("exchangeTimezoneName");
@@ -185,7 +185,7 @@ public class YahooFinanceService {
             Assets asset = entry.getKey();
             JSONObject root = entry.getValue();
 
-            List<AssetResponseDto> responseList = parseHistoricalAssets(root);
+            List<AssetResponseDto> responseList = parseHistoricalAssets(root, asset);
             assets.put(asset, responseList);
         }
 
@@ -200,7 +200,7 @@ public class YahooFinanceService {
             Assets asset = entry.getKey();
             JSONObject root = entry.getValue();
 
-            AssetResponseDto assetDto = parseLastTradingDayAsset(root);
+            AssetResponseDto assetDto = parseLastTradingDayAsset(root, asset);
             assets.put(asset, assetDto);
         }
 
