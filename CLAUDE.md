@@ -34,8 +34,26 @@ DailyFeed is a Java 21 / Spring Boot 4 desktop app (Swing UI planned) that fetch
 
 **Environment:** API keys are loaded via `java-dotenv` (`.env` file in project root). Spring Boot app context is used as a service locator in `main()` during development — this will be replaced by Swing UI wiring later.
 
-## Planned features (not yet implemented)
+## Next task: Currents API integration
 
-- Currents API integration for news fetching (filtered per selected day)
-- AI service to select top 5 news per day and categorize them
-- Java Swing UI with day selector (last 5 trading days) showing asset movements + top news
+Build a `CurrentsApiService` that fetches news for a given date, analogous to `YahooFinanceService`.
+
+**Currents API details:**
+- Base URL: `https://api.currentsapi.services/v1/`
+- Relevant endpoint: `GET /v1/search`
+- API key is stored in `.env` as `CURRENTS_API_KEY`, loaded via java-dotenv
+- Key query parameters: `start_date`, `end_date` (ISO 8601: `2026-06-03T00:00:00+00:00`), `language=en`, `category`
+- Categories to fetch: `politics`, `finance`, `technology`, `world`, `entertainment` (maps to: Politik, Wirtschaft, Technologie, Weltgeschehen, Gesellschaft)
+- Response structure: `{ "news": [ { "title", "description", "url", "author", "published", "category": [...] } ] }`
+- The API filters by `start_date` but not precisely by a single day — filter client-side by `published` date after fetching
+
+**What to build:**
+1. `domain/dto/response/NewsArticleDto` — fields: `title`, `description`, `url`, `publishedAt` (LocalDate), `category`
+2. `util/CurrentsApiUtil` — builds the request URI (similar pattern to `YahooFinanceUtil`)
+3. `service/CurrentsApiService` — fetches news for a given `LocalDate`, returns `List<NewsArticleDto>` filtered to that day
+
+**After that:** AI service (Claude API) that takes the `List<NewsArticleDto>` for a day and returns the top 5 articles with category labels.
+
+**Then:** Swing UI with day selector showing asset movements + top 5 news per day.
+
+**Deadline:** 2026-06-22
