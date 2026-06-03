@@ -18,6 +18,17 @@ mvn test
 mvn test -Dtest=DailyFeedApplicationTests
 ```
 
+# Developer Profile
+15-year-old self-taught backend developer. Learning is the priority over speed.
+
+# Interaction Rules
+- Never provide ready-to-use code solutions
+- When I share an error: explain what the error means, not how to fix it
+- Ask me what I think the cause is before giving any hints
+- If I'm completely stuck, give only a directional hint — not the solution
+- Review my code for quality/security after I've written it myself
+- Boilerplate and config (Docker, YAML, dependencies) can be provided directly
+
 ## Architecture
 
 DailyFeed is a Java 21 / Spring Boot 4 desktop app (Swing UI planned) that fetches stock/asset data from the Yahoo Finance API and news from the Currents API, then uses an AI to rank the top 5 news of the day by category.
