@@ -24,7 +24,7 @@ public class YahooFinanceUtil {
     public BigDecimal percentageDifference(BigDecimal currentPrice, BigDecimal previousClosePrice) {
         return currentPrice
                 .subtract(previousClosePrice)
-                .divide(previousClosePrice, 2, RoundingMode.HALF_UP)
+                .divide(previousClosePrice, 4, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
     }
 

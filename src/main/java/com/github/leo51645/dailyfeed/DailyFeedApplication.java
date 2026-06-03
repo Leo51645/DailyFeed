@@ -20,7 +20,7 @@ public class DailyFeedApplication {
         Map<Assets, List<AssetResponseDto>> all = service.getAllAssets();
         all.forEach((asset, dtos) -> {
             System.out.println("=== " + asset.name() + " ===");
-            dtos.forEach(dto -> System.out.println(dto.getDate() + " | " + dto.getCurrentPrice() + " | " + dto.getChangePercentClosedMarket()));
+            dtos.forEach(dto -> System.out.println(dto.getDate() + " | " + dto.getCurrentPrice() + " | " + dto.getChangePercentClosedMarket() + " | " + dto.getChangePercentIntraday()));
         });
     }
 
