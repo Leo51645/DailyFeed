@@ -54,7 +54,8 @@ Build a `CurrentsApiService` that fetches news for a given date, analogous to `Y
 - Relevant endpoint: `GET /v1/search`
 - API key is stored in `.env` as `CURRENTS_API_KEY`, loaded via java-dotenv
 - Key query parameters: `start_date`, `end_date` (ISO 8601: `2026-06-03T00:00:00+00:00`), `language=en`, `category`
-- Categories to fetch: `politics`, `finance`, `technology`, `world`, `entertainment` (maps to: Politik, Wirtschaft, Technologie, Weltgeschehen, Gesellschaft)
+- Categories to fetch: `politics_government`, `economy_business_finance`, `science_technology`, `general`, `arts_culture_entertainment` (maps to: Politik, Wirtschaft, Technologie, Weltgeschehen, Gesellschaft)
+- **All valid category values:** `general`, `society`, `science_technology`, `politics_government`, `economy_business_finance`, `arts_culture_entertainment`, `lifestyle_leisure`, `human_interest`, `sport`, `crime_law_justice`, `education`, `environment`, `labour`, `health`, `automotive`, `real_estate`
 - Response structure: `{ "news": [ { "title", "description", "url", "author", "published", "category": [...] } ] }`
 - The API filters by `start_date` but not precisely by a single day — filter client-side by `published` date after fetching
 

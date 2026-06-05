@@ -1,5 +1,8 @@
 package com.github.leo51645.dailyfeed.domain.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum News_Categories {
     POLITICS("politics_government", "Politk"),
     SPORTS("sports", "Sport"),
