@@ -1,3 +1,6 @@
 spring:
   application:
     name: DailyFeed
+
+currents-news:
+  apiKey: ${CURRENTS_API_KEY}
