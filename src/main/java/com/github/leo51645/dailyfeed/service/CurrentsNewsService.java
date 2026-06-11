@@ -32,7 +32,6 @@ public class CurrentsNewsService {
 
     private final HttpClient client = HttpClient.newHttpClient();
 
-
     // before AI
     private HttpResponse<String> getHttpNewsResponse(News_Categories news_category, String startDate, String endDate, int pageNumber) {
         URI uri = URI.create(currentsNewsUtil.createCurrentsNewsRequestURI(news_category, apiKey, startDate, endDate, pageNumber));
@@ -108,7 +107,7 @@ public class CurrentsNewsService {
                 JSONObject root = new JSONObject(httpResponse.body());
                 boolean next_cursorIsNull = root.isNull("next_cursor");
 
-                if (!next_cursorIsNull) isNextPage = false;
+                if (next_cursorIsNull) isNextPage = false;
 
                 List<NewsResponseDto> newsListOneCategorySinglePage = parseNews(root);
                 newsListOneCategoryAllPages.addAll(newsListOneCategorySinglePage);
