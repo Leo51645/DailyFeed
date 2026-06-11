@@ -14,10 +14,12 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -85,5 +87,35 @@ public class CurrentsNewsService {
         }
 
         return newsList;
+    }
+
+    public List<NewsResponseDto> getNewsOneDay(LocalDate startDate, LocalDate endDate) {
+        List<NewsResponseDto> allNewsOneDay = new ArrayList<>();
+
+        for (News_Categories news_category : News_Categories.values()) {
+            boolean isNextPage = true;
+            List<NewsResponseDto> newsListOneCategoryAllPages = new ArrayList<>();
+            int i = 1;
+
+            while (isNextPage) {
+                HttpResponse<String> httpResponse = getHttpNewsResponse(news_category, startDate.toString(), endDate.toString(), i);
+                i++;
+
+                if (httpResponse.statusCode() != 200) {
+                    throw new RuntimeException("Failed : HTTP error code : " + httpResponse.statusCode()); // Todo: Error Handling
+                }
+
+                JSONObject root = new JSONObject(httpResponse.body());
+                boolean next_cursorIsNull = root.isNull("next_cursor");
+
+                if (!next_cursorIsNull) isNextPage = false;
+
+                List<NewsResponseDto> newsListOneCategorySinglePage = parseNews(root);
+                newsListOneCategoryAllPages.addAll(newsListOneCategorySinglePage);
+            }
+            allNewsOneDay.addAll(newsListOneCategoryAllPages);
+
+        }
+        return allNewsOneDay;
     }
 }
