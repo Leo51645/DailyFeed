@@ -1,7 +1,10 @@
 package com.github.leo51645.dailyfeed.domain.dto.response;
 
+import com.github.leo51645.dailyfeed.domain.enums.News_Categories;
 import lombok.Builder;
 import lombok.Data;
+
+import java.time.OffsetDateTime;
 
 @Data
 @Builder
@@ -10,7 +13,7 @@ public class NewsResponseDto {
     private String description;
 
     private String url;
-    private String category;
+    private News_Categories category;
 
-    private String publishedAt;
+    private OffsetDateTime publishedAt;
 }

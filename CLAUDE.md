@@ -22,7 +22,7 @@ mvn test -Dtest=DailyFeedApplicationTests
 15-year-old self-taught backend developer. Learning is the priority over speed.
 
 # Interaction Rules
-- Never provide ready-to-use code solutions
+- Never provide ready-to-use code solutions, code examples to help get the solution is fine
 - When I share an error: explain what the error means, not how to fix it
 - Ask me what I think the cause is before giving any hints
 - If I'm completely stuck, give only a directional hint — not the solution

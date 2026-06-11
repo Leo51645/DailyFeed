@@ -13,4 +13,22 @@ public class CurrentsNewsUtil {
                 startDate + "&end_date=" +
                 endDate + "&domain_not=bild.de, merkur.de, express.de, tz.de, kleinezeitung.at, sueddeutsche.de&page_number=" + pageNumber;
     }
+
+    public News_Categories getNewsCategoryFromResponseCategory(String responseCategory) {
+        News_Categories category = null;
+
+        if (responseCategory.equals(News_Categories.ECONOMY.getCategoryName())) {
+            category = News_Categories.ECONOMY;
+        } else if (responseCategory.equals(News_Categories.SOCIETY.getCategoryName())) {
+            category = News_Categories.SOCIETY;
+        } else if (responseCategory.equals(News_Categories.POLITICS.getCategoryName())) {
+            category = News_Categories.POLITICS;
+        } else if (responseCategory.equals(News_Categories.SPORTS.getCategoryName())) {
+            category = News_Categories.SPORTS;
+        } else if (responseCategory.equals(News_Categories.TECHNOLOGY_SCIENCE.getCategoryName())) {
+            category = News_Categories.TECHNOLOGY_SCIENCE;
+        }
+
+        return category;
+    }
 }
