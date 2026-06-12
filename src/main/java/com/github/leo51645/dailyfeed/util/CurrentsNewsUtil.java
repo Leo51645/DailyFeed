@@ -10,8 +10,11 @@ public class CurrentsNewsUtil {
         return "https://api.currentsapi.services/v2/search?apiKey=" +
                 apiKey + "&language=de&category=" +
                 news_category.getCategoryName() + "&start_date=" +
-                startDate + "&end_date=" +
-                endDate + "&domain_not=&page_number=" + pageNumber;
+                startDate + "&end_date=" + endDate +
+                "&domain_not=noz.de,bild.de,kleinezeitung.de,merkur.de,sueddeutsche.de,tt.com,focus.de,taz.de,cicero.de," +
+                "nachdenkseiten.de,rollingstone.de,golem.de,presseportal.de,woz.ch,blick.ch,hna.de,watson.de,manager-magazin.de," +
+                "t3n.de,heise.de,spektrum.de,hardwareluxx.de,blog.gwup.net" +
+                "&page_number=" + pageNumber;
     }
 
     public News_Categories getNewsCategoryFromResponseCategory(String responseCategory) {
