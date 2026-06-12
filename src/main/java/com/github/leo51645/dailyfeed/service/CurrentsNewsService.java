@@ -61,6 +61,8 @@ public class CurrentsNewsService {
     private List<NewsResponseDto> parseNews(JSONObject root) {
         JSONArray allNews = root.getJSONArray("news");
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z");
+
         List<NewsResponseDto> newsList = new ArrayList<>();
         for (int i = 0; i < allNews.length(); i++) {
             JSONObject singleNews = allNews.getJSONObject(i);
@@ -73,7 +75,6 @@ public class CurrentsNewsService {
 
             News_Categories category = currentsNewsUtil.getNewsCategoryFromResponseCategory(responseCategory);
 
-            DateTimeFormatter  formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z");
             OffsetDateTime dateTime = OffsetDateTime.parse(publishedAt, formatter);
 
             NewsResponseDto news = NewsResponseDto.builder()
