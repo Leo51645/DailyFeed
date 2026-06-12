@@ -11,7 +11,7 @@ public class CurrentsNewsUtil {
                 apiKey + "&language=de&category=" +
                 news_category.getCategoryName() + "&start_date=" +
                 startDate + "&end_date=" +
-                endDate + "&domain_not=bild.de, merkur.de, express.de, tz.de, kleinezeitung.at, sueddeutsche.de&page_number=" + pageNumber;
+                endDate + "&domain_not=&page_number=" + pageNumber;
     }
 
     public News_Categories getNewsCategoryFromResponseCategory(String responseCategory) {

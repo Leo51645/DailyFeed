@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum News_Categories {
     POLITICS("politics_government", "Politk"),
-    SPORTS("sports", "Sport"),
+    SPORTS("sport", "Sport"),
     SOCIETY("society", "Gesellschaft"),
     ECONOMY("economy_business_finance", "Wirtschaft"),
     TECHNOLOGY_SCIENCE("science_technology", "Wissenschaft & Technologie");
