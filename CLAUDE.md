@@ -18,6 +18,17 @@ mvn test
 mvn test -Dtest=DailyFeedApplicationTests
 ```
 
+# Developer Profile
+15-year-old self-taught backend developer. Learning is the priority over speed.
+
+# Interaction Rules
+- Never provide ready-to-use code solutions, code examples to help get the solution is fine
+- When I share an error: explain what the error means, not how to fix it
+- Ask me what I think the cause is before giving any hints
+- If I'm completely stuck, give only a directional hint — not the solution
+- Review my code for quality/security after I've written it myself
+- Boilerplate and config (Docker, YAML, dependencies) can be provided directly
+
 ## Architecture
 
 DailyFeed is a Java 21 / Spring Boot 4 desktop app (Swing UI planned) that fetches stock/asset data from the Yahoo Finance API and news from the Currents API, then uses an AI to rank the top 5 news of the day by category.
@@ -43,9 +54,10 @@ Build a `CurrentsApiService` that fetches news for a given date, analogous to `Y
 - Relevant endpoint: `GET /v1/search`
 - API key is stored in `.env` as `CURRENTS_API_KEY`, loaded via java-dotenv
 - Key query parameters: `start_date`, `end_date` (ISO 8601: `2026-06-03T00:00:00+00:00`), `language=en`, `category`
-- Categories to fetch: `politics`, `finance`, `technology`, `world`, `entertainment` (maps to: Politik, Wirtschaft, Technologie, Weltgeschehen, Gesellschaft)
+- Categories to fetch: `politics_government`, `economy_business_finance`, `science_technology`, `general`, `arts_culture_entertainment` (maps to: Politik, Wirtschaft, Technologie, Weltgeschehen, Gesellschaft)
+- **All valid category values:** `general`, `society`, `science_technology`, `politics_government`, `economy_business_finance`, `arts_culture_entertainment`, `lifestyle_leisure`, `human_interest`, `sport`, `crime_law_justice`, `education`, `environment`, `labour`, `health`, `automotive`, `real_estate`
 - Response structure: `{ "news": [ { "title", "description", "url", "author", "published", "category": [...] } ] }`
-- The API filters by `start_date` but not precisely by a single day — filter client-side by `published` date after fetching
+- The API filters by `start_date` and `end_date` precisely
 
 **What to build:**
 1. `domain/dto/response/NewsArticleDto` — fields: `title`, `description`, `url`, `publishedAt` (LocalDate), `category`

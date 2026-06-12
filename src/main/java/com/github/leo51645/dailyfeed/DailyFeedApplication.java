@@ -1,27 +1,23 @@
 package com.github.leo51645.dailyfeed;
 
-import com.github.leo51645.dailyfeed.domain.dto.response.AssetResponseDto;
-import com.github.leo51645.dailyfeed.domain.enums.Assets;
-import com.github.leo51645.dailyfeed.service.YahooFinanceService;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationContext;
-
-import java.util.List;
-import java.util.Map;
 
 @SpringBootApplication
 public class DailyFeedApplication {
 
     public static void main(String[] args) {
-        ApplicationContext ctx = SpringApplication.run(DailyFeedApplication.class, args);
-        YahooFinanceService service = ctx.getBean(YahooFinanceService.class);
 
-        Map<Assets, List<AssetResponseDto>> all = service.getAllAssets();
-        all.forEach((asset, dtos) -> {
-            System.out.println("=== " + asset.name() + " ===");
-            dtos.forEach(dto -> System.out.println(dto.getDate() + " | " + dto.getCurrentPrice() + " | " + dto.getChangePercentClosedMarket() + " | " + dto.getChangePercentIntraday()));
-        });
+        // Load environment variables from .env into system properties so Spring can access them
+        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+        String currentsApiKey = dotenv.get("CURRENTS_API_KEY");
+        if (currentsApiKey != null) {
+            System.setProperty("CURRENTS_API_KEY", currentsApiKey);
+        }
+
+        SpringApplication.run(DailyFeedApplication.class, args);
+
     }
 
 }
