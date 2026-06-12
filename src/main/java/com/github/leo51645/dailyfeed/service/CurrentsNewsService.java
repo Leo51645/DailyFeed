@@ -105,10 +105,6 @@ public class CurrentsNewsService {
                 HttpResponse<String> httpResponse = getHttpNewsResponse(news_category, startDate.toString(), endDate.toString(), i);
                 i++;
 
-                if (httpResponse.statusCode() != 200) {
-                    throw new RuntimeException("Failed : HTTP error code : " + httpResponse.statusCode()); // Todo: Error Handling
-                }
-
                 JSONObject root = new JSONObject(httpResponse.body());
                 boolean next_cursorIsNull = root.isNull("next_cursor");
 
