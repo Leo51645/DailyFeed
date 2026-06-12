@@ -70,14 +70,16 @@ public class CurrentsNewsService {
             String title = singleNews.getString("title");
             String description = singleNews.getString("description");
             String url = singleNews.getString("url");
-            String responseCategory = singleNews.getJSONArray("category").getString(0);
+            JSONArray responseCategorys = singleNews.getJSONArray("category");
+
+            if (responseCategorys.isEmpty()) continue;
+
+            String responseCategory= responseCategorys.getString(0);
             String publishedAt = singleNews.getString("published");
-
             News_Categories category = currentsNewsUtil.getNewsCategoryFromResponseCategory(responseCategory);
-
             OffsetDateTime dateTime = OffsetDateTime.parse(publishedAt, formatter);
 
-            NewsResponseDto news = NewsResponseDto.builder()
+            NewsResponseDto newsArticle = NewsResponseDto.builder()
                     .title(title)
                     .description(description)
                     .url(url)
@@ -85,7 +87,7 @@ public class CurrentsNewsService {
                     .publishedAt(dateTime)
                     .build();
 
-            newsList.add(news);
+            newsList.add(newsArticle);
         }
 
         return newsList;
