@@ -14,7 +14,6 @@ public class DailyFeedApplication {
         String currentsApiKey = dotenv.get("CURRENTS_API_KEY");
         if (currentsApiKey != null) {
             System.setProperty("CURRENTS_API_KEY", currentsApiKey);
-            System.out.println(System.getProperty("CURRENTS_API_KEY"));
         }
 
         SpringApplication.run(DailyFeedApplication.class, args);
