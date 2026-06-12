@@ -71,6 +71,9 @@ public class CurrentsNewsService {
             JSONObject singleNews = allNews.getJSONObject(i);
 
             String title = singleNews.getString("title");
+            // if article is a spiegel+ article skip this one
+            if (title.contains("(S+)")) continue;
+
             String description = singleNews.getString("description");
             String url = singleNews.getString("url");
             JSONArray responseCategories = singleNews.getJSONArray("category");
