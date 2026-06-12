@@ -58,12 +58,15 @@ public class CurrentsNewsService {
         }
     }
 
+    // parses response from currents api to NewsResponseDto's
     private List<NewsResponseDto> parseNews(JSONObject root) {
         JSONArray allNews = root.getJSONArray("news");
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z");
 
         List<NewsResponseDto> newsList = new ArrayList<>();
+
+        // for each news article from one category and one day create an object of it and save it in a list
         for (int i = 0; i < allNews.length(); i++) {
             JSONObject singleNews = allNews.getJSONObject(i);
 
@@ -99,6 +102,7 @@ public class CurrentsNewsService {
         OffsetDateTime startDate = OffsetDateTime.of(date, LocalTime.of(0, 0, 0), ZoneOffset.UTC);
         OffsetDateTime endDate = OffsetDateTime.of(date, LocalTime.of(23, 59, 59), ZoneOffset.UTC);
 
+        // for each existing category get all articles of a specific day, save them in a list and put these lists together so there is one list with all categories for each day
         for (News_Categories news_category : News_Categories.values()) {
             boolean isNextPage = true;
             List<NewsResponseDto> newsListOneCategoryAllPages = new ArrayList<>();
