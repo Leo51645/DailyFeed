@@ -15,7 +15,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,8 +90,11 @@ public class CurrentsNewsService {
         return newsList;
     }
 
-    public List<NewsResponseDto> getNewsOneDay(LocalDate startDate, LocalDate endDate) {
+    public List<NewsResponseDto> getNewsOneDay(LocalDate date) {
         List<NewsResponseDto> allNewsOneDay = new ArrayList<>();
+
+        OffsetDateTime startDate = OffsetDateTime.of(date, LocalTime.of(0, 0, 0), ZoneOffset.UTC);
+        OffsetDateTime endDate = OffsetDateTime.of(date, LocalTime.of(23, 59, 59), ZoneOffset.UTC);
 
         for (News_Categories news_category : News_Categories.values()) {
             boolean isNextPage = true;

@@ -57,7 +57,7 @@ Build a `CurrentsApiService` that fetches news for a given date, analogous to `Y
 - Categories to fetch: `politics_government`, `economy_business_finance`, `science_technology`, `general`, `arts_culture_entertainment` (maps to: Politik, Wirtschaft, Technologie, Weltgeschehen, Gesellschaft)
 - **All valid category values:** `general`, `society`, `science_technology`, `politics_government`, `economy_business_finance`, `arts_culture_entertainment`, `lifestyle_leisure`, `human_interest`, `sport`, `crime_law_justice`, `education`, `environment`, `labour`, `health`, `automotive`, `real_estate`
 - Response structure: `{ "news": [ { "title", "description", "url", "author", "published", "category": [...] } ] }`
-- The API filters by `start_date` but not precisely by a single day — filter client-side by `published` date after fetching
+- The API filters by `start_date` and `end_date` precisely
 
 **What to build:**
 1. `domain/dto/response/NewsArticleDto` — fields: `title`, `description`, `url`, `publishedAt` (LocalDate), `category`
