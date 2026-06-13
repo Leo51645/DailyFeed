@@ -140,7 +140,7 @@ public class GeminiService {
                 }
                 topNewsOneDayAllCategories.put(category, topNewsOneDayOneCategory);
             }
-            allNews.put(OffsetDateTime.parse(date, dateFormatter).toLocalDate(), topNewsOneDayAllCategories);
+            allNews.put(LocalDate.parse(date, dateFormatter), topNewsOneDayAllCategories);
         }
         return allNews;
     }
