@@ -10,8 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,10 +26,18 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GeminiService {
 
-    private final Client client = new Client();
+    @Value("${GEMINI_API_KEY}")
+    private String apiKey;
+
+    private Client client;
     private final GeminiServiceUtil geminiServiceUtil;
     private final CurrentsNewsUtil currentsNewsUtil;
     private final CurrentsNewsService currentsNewsService;
+
+    @PostConstruct
+    private void init() {
+        client = Client.builder().apiKey(apiKey).build();
+    }
 
     // create AI prompt out off all news, send it and get response of the gemini AI
     private GenerateContentResponse getGeminiNewsResponseAllDays(List<NewsResponseDto> firstDay, List<NewsResponseDto> secondDay, List<NewsResponseDto> today) {
