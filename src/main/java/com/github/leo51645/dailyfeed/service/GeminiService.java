@@ -37,7 +37,8 @@ public class GeminiService {
                 "1. For each day and each category, select the 5 most important and relevant articles\n" +
                 "2. Base your ranking on: relevance, significance of the event, and informational value\n" +
                 "3. Remove duplicate articles (same story, different sources) — keep only the most informative version\n" +
-                "4. Return ONLY a valid JSON array, no markdown, no explanation, no code blocks\n" +
+                "4. Convert all publishedAt timestamps to exactly this format: \"yyyy-MM-dd HH:mm:ss +0000\" (example: \"2026-06-12 23:31:14 +0000\")\n" +
+                "5. Return ONLY a valid JSON array, no markdown, no explanation, no code blocks\n" +
                 "\n" +
                 "The JSON must follow this exact structure:\n" +
                 "[\n" +
@@ -65,7 +66,7 @@ public class GeminiService {
                 "- Every category must appear exactly once per day\n" +
                 "- Each category must have exactly 5 articles\n" +
                 "- Do not invent or modify articles — only use what is provided\n" +
-                "- Preserve the original publishedAt timestamp exactly as provided\n" +
+                "- Convert the publishedAt timestamp exactly as mentioned\n" +
                 "- If and ONLY if the category field is null at no other condition, you can choose the best fitting category out of these 5: " +
                         "politics_government, sport, society, economy_business_finance, science_technology\n" +
                 "\n" +
