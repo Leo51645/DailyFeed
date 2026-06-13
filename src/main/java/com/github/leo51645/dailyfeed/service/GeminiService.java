@@ -27,9 +27,10 @@ public class GeminiService {
     private final Client client = new Client();
     private final GeminiServiceUtil geminiServiceUtil;
     private final CurrentsNewsUtil currentsNewsUtil;
+    private final CurrentsNewsService currentsNewsService;
 
     // create AI prompt out off all news, send it and get response of the gemini AI
-    private GenerateContentResponse getGeminiNewsResponse(List<NewsResponseDto> firstDay, List<NewsResponseDto> secondDay, List<NewsResponseDto> today) {
+    private GenerateContentResponse getGeminiNewsResponseAllDays(List<NewsResponseDto> firstDay, List<NewsResponseDto> secondDay, List<NewsResponseDto> today) {
         return client.models.generateContent("gemini-2.5-flash",
                 "You are a news ranking assistant. You will receive news articles from three different days, each containing multiple categories.\n" +
                 "\n" +
@@ -77,6 +78,51 @@ public class GeminiService {
                 "Day 2:\n" + geminiServiceUtil.NewsListToJson(secondDay) +
                 "\n" +
                 "Today:\n" + geminiServiceUtil.NewsListToJson(today)
+                , null);
+    }
+    private GenerateContentResponse getGeminiNewsResponseOneDay(List<NewsResponseDto> newsOneDay) {
+        return client.models.generateContent("gemini-2.5-flash",
+                "You are a news ranking assistant. You will receive news articles from one single day, each containing multiple categories.\n" +
+                        "\n" +
+                        "Your task:\n" +
+                        "1. For each category, select the 5 most important and relevant articles\n" +
+                        "2. Base your ranking on: relevance, significance of the event, and informational value\n" +
+                        "3. Remove duplicate articles (same story, different sources) — keep only the most informative version\n" +
+                        "4. Convert all publishedAt timestamps to exactly this format: \"yyyy-MM-dd HH:mm:ss +0000\" (example: \"2026-06-12 23:31:14 +0000\")\n" +
+                        "5. Return ONLY a valid JSON array, no markdown, no explanation, no code blocks\n" +
+                        "\n" +
+                        "The JSON must follow this exact structure:\n" +
+                        "[\n" +
+                        "  {\n" +
+                        "    \"date\": \"YYYY-MM-DD\",\n" +
+                        "    \"topNews\": [\n" +
+                        "      {\n" +
+                        "        \"category\": \"CATEGORY_NAME\",\n" +
+                        "        \"articles\": [\n" +
+                        "          {\n" +
+                        "            \"title\": \"...\",\n" +
+                        "            \"description\": \"...\",\n" +
+                        "            \"url\": \"...\",\n" +
+                        "            \"publishedAt\": \"...\"\n" +
+                        "          }\n" +
+                        "        ]\n" +
+                        "      }\n" +
+                        "    ]\n" +
+                        "  }\n" +
+                        "]\n" +
+                        "\n" +
+                        "Important rules:\n" +
+                        "- Return ONLY the JSON, nothing else! - This is very important!\n" +
+                        "- Every category must appear exactly once per day\n" +
+                        "- Each category must have exactly 5 articles\n" +
+                        "- Do not invent or modify articles — only use what is provided\n" +
+                        "- Convert the publishedAt timestamp exactly as mentioned\n" +
+                        "- If and ONLY if the category field is null at no other condition, you can choose the best fitting category out of these 5: " +
+                        "politics_government, sport, society, economy_business_finance, science_technology\n" +
+                        "\n" +
+                        "Here are the articles:\n" +
+                        "\n" +
+                        "Day:\n" + geminiServiceUtil.NewsListToJson(newsOneDay)
                 , null);
     }
 
@@ -152,5 +198,22 @@ public class GeminiService {
             allNews.put(LocalDate.parse(date, dateFormatter), topNewsOneDayAllCategories);
         }
         return allNews;
+    }
+
+    public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> getNewsOneDay(LocalDate date) {
+        List<NewsResponseDto> newsSingleDay = currentsNewsService.getNewsOneDay(date);
+
+        GenerateContentResponse aiResponse = getGeminiNewsResponseOneDay(newsSingleDay);
+
+        return parseAIResponse(aiResponse);
+    }
+    public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> getNewsAllDays(LocalDate date) {
+        List<NewsResponseDto> day1News = currentsNewsService.getNewsOneDay(date.minusDays(2));
+        List<NewsResponseDto> day2News = currentsNewsService.getNewsOneDay(date.minusDays(1));
+        List<NewsResponseDto> todayNews = currentsNewsService.getNewsOneDay(date);
+
+        GenerateContentResponse aiResponse = getGeminiNewsResponseAllDays(day1News, day2News, todayNews);
+
+        return parseAIResponse(aiResponse);
     }
 }
