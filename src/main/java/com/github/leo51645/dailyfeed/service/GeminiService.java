@@ -8,6 +8,7 @@ import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GeminiService {
@@ -41,7 +43,7 @@ public class GeminiService {
 
     // create AI prompt out off all news, send it and get response of the gemini AI
     private GenerateContentResponse getGeminiNewsResponseAllDays(List<NewsResponseDto> firstDay, List<NewsResponseDto> secondDay, List<NewsResponseDto> today) {
-        return client.models.generateContent("gemini-2.5-flash",
+        return client.models.generateContent("gemini-3.5-flash",
                 "You are a news ranking assistant. You will receive news articles from three different days, each containing multiple categories.\n" +
                 "\n" +
                 "Your task:\n" +
@@ -91,7 +93,7 @@ public class GeminiService {
                 , null);
     }
     private GenerateContentResponse getGeminiNewsResponseOneDay(List<NewsResponseDto> newsOneDay) {
-        return client.models.generateContent("gemini-2.5-flash",
+        return client.models.generateContent("gemini-3.5-flash",
                 "You are a news ranking assistant. You will receive news articles from one single day, each containing multiple categories.\n" +
                         "\n" +
                         "Your task:\n" +
@@ -177,6 +179,7 @@ public class GeminiService {
 
                 String responseCategory = categoryFilter.getString("category");
                 News_Categories category = currentsNewsUtil.getNewsCategoryFromResponseCategory(responseCategory);
+                if (category == null) log.warn("Unknown category string from Gemini: '{}'", responseCategory);
 
                 JSONArray articles = categoryFilter.getJSONArray("articles");
 
@@ -211,19 +214,30 @@ public class GeminiService {
     }
 
     public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> getNewsOneDay(LocalDate date) {
+        log.info("Requesting Gemini ranking for single day {}", date);
         List<NewsResponseDto> newsSingleDay = currentsNewsService.getNewsOneDay(date);
+        log.info("Sending {} articles to Gemini", newsSingleDay.size());
 
         GenerateContentResponse aiResponse = getGeminiNewsResponseOneDay(newsSingleDay);
+        log.info("Gemini response received, parsing...");
 
-        return parseAIResponse(aiResponse);
+        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponse(aiResponse);
+        log.info("Parsed {} days from Gemini response", result.size());
+        return result;
     }
+
     public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> getNewsAllDays(LocalDate date) {
+        log.info("Requesting Gemini ranking for 3 days ending {}", date);
         List<NewsResponseDto> day1News = currentsNewsService.getNewsOneDay(date.minusDays(2));
         List<NewsResponseDto> day2News = currentsNewsService.getNewsOneDay(date.minusDays(1));
         List<NewsResponseDto> todayNews = currentsNewsService.getNewsOneDay(date);
+        log.info("Sending {} articles to Gemini", day1News.size() + day2News.size() + todayNews.size());
 
         GenerateContentResponse aiResponse = getGeminiNewsResponseAllDays(day1News, day2News, todayNews);
+        log.info("Gemini response received, parsing...");
 
-        return parseAIResponse(aiResponse);
+        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponse(aiResponse);
+        log.info("Parsed {} days from Gemini response", result.size());
+        return result;
     }
 }

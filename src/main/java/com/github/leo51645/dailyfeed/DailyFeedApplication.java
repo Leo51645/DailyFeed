@@ -31,7 +31,7 @@ public class DailyFeedApplication {
         ApplicationContext context = SpringApplication.run(DailyFeedApplication.class, args);
 
         GeminiService geminiService = context.getBean(GeminiService.class);
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = geminiService.getNewsAllDays(LocalDate.now());
+        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = geminiService.getNewsOneDay(LocalDate.now());
 
         for (Map.Entry<LocalDate, Map<News_Categories, List<NewsResponseDto>>> dayEntry : result.entrySet()) {
             System.out.println("\n=== " + dayEntry.getKey() + " ===");

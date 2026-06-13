@@ -4,6 +4,7 @@ import com.github.leo51645.dailyfeed.domain.dto.response.NewsResponseDto;
 import com.github.leo51645.dailyfeed.domain.enums.News_Categories;
 import com.github.leo51645.dailyfeed.util.CurrentsNewsUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CurrentsNewsService {
@@ -47,9 +49,11 @@ public class CurrentsNewsService {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
+                log.error("Currents API error {} for category {} on page {}", response.statusCode(), news_category, pageNumber);
                 throw new RuntimeException("Failed : HTTP error code : " + response.statusCode()); // Todo: Exception Handling
             }
 
+            log.debug("Currents API response received for category {} page {}", news_category, pageNumber);
             return response;
         } catch (IOException e) {
             throw new RuntimeException(e); //Todo: Exception Handling
@@ -100,6 +104,7 @@ public class CurrentsNewsService {
     }
 
     public List<NewsResponseDto> getNewsOneDay(LocalDate date) {
+        log.info("Fetching news for date {}", date);
         List<NewsResponseDto> allNewsOneDay = new ArrayList<>();
 
         OffsetDateTime startDate = OffsetDateTime.of(date, LocalTime.of(0, 0, 0), ZoneOffset.UTC);
@@ -123,9 +128,10 @@ public class CurrentsNewsService {
                 List<NewsResponseDto> newsListOneCategorySinglePage = parseNews(root);
                 newsListOneCategoryAllPages.addAll(newsListOneCategorySinglePage);
             }
+            log.info("Fetched {} articles for category {}", newsListOneCategoryAllPages.size(), news_category);
             allNewsOneDay.addAll(newsListOneCategoryAllPages);
-
         }
+        log.info("Total articles fetched for {}: {}", date, allNewsOneDay.size());
         return allNewsOneDay;
     }
 }

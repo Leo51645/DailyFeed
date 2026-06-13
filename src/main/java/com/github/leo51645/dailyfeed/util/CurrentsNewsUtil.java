@@ -9,8 +9,7 @@ public class CurrentsNewsUtil {
     public String createCurrentsNewsRequestURI(News_Categories news_category, String apiKey, String startDate, String endDate, int pageNumber) {
         return "https://api.currentsapi.services/v2/search?apiKey=" +
                 apiKey + "&language=de&category=" +
-                news_category.getCategoryName() + "&start_date=" +
-                startDate + "&end_date=" + endDate +
+                news_category.getCategoryName() + "&start_date=2026-06-13T00:00:00Z&end_date=2026-06-13T23:59:59Z" +
                 "&domain_not=noz.de,bild.de,kleinezeitung.de,merkur.de,sueddeutsche.de,tt.com,focus.de,taz.de,cicero.de," +
                 "nachdenkseiten.de,rollingstone.de,golem.de,presseportal.de,woz.ch,blick.ch,hna.de,watson.de,manager-magazin.de," +
                 "t3n.de,heise.de,spektrum.de,hardwareluxx.de,blog.gwup.net" +
