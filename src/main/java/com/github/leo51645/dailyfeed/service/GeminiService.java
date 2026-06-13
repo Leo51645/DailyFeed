@@ -60,12 +60,14 @@ public class GeminiService {
                 "]\n" +
                 "\n" +
                 "Important rules:\n" +
-                "- Return ONLY the JSON, nothing else\n" +
+                "- Return ONLY the JSON, nothing else! - This is very important!\n" +
                 "- Every day must appear exactly once\n" +
                 "- Every category must appear exactly once per day\n" +
                 "- Each category must have exactly 5 articles\n" +
                 "- Do not invent or modify articles — only use what is provided\n" +
                 "- Preserve the original publishedAt timestamp exactly as provided\n" +
+                "- If and ONLY if the category field is null at no other condition, you can choose the best fitting category out of these 5: " +
+                        "politics_government, sport, society, economy_business_finance, science_technology\n" +
                 "\n" +
                 "Here are the articles:\n" +
                 "\n" +
