@@ -6,6 +6,7 @@ import com.github.leo51645.dailyfeed.util.CurrentsNewsUtil;
 import com.github.leo51645.dailyfeed.util.GeminiServiceUtil;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,7 +14,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
