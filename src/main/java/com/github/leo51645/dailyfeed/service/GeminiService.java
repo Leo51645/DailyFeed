@@ -8,6 +8,7 @@ import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -84,7 +85,12 @@ public class GeminiService {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         String responseString = aiResponse.text();
-        JSONArray root = new JSONArray(responseString);
+        JSONArray root = null;
+        try {
+            root = new JSONArray(responseString);
+        } catch (JSONException e) {
+            e.printStackTrace(); // TODO: Error Handling
+        }
 
         Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> allNews = new HashMap<>();
 
