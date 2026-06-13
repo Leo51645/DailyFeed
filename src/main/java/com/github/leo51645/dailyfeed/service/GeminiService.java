@@ -89,10 +89,14 @@ public class GeminiService {
         try {
             root = new JSONArray(responseString);
         } catch (JSONException e) {
-            e.printStackTrace(); // TODO: Error Handling
+            e.printStackTrace(); // TODO: Error Handling -> wrong AI response pattern
         }
 
         Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> allNews = new HashMap<>();
+
+        if (root == null) {
+            return allNews;
+        }
 
         // for each existing date
         for (int i = 0; i < root.length(); i++) {
