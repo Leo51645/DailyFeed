@@ -84,15 +84,24 @@ public class GeminiService {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z");
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-        String responseString = aiResponse.text();
+        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> allNews = new HashMap<>();
+
+        if (aiResponse == null) {
+            return allNews;
+        }
+
+        String responseString = aiResponse.text().trim();
+
+        if (responseString.startsWith("```")) {
+            responseString = responseString.replaceAll("^```[a-zA-Z]*\\n?", "").replaceAll("```$", "").trim();
+        }
+
         JSONArray root = null;
         try {
             root = new JSONArray(responseString);
         } catch (JSONException e) {
             e.printStackTrace(); // TODO: Error Handling -> wrong AI response pattern
         }
-
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> allNews = new HashMap<>();
 
         if (root == null) {
             return allNews;
