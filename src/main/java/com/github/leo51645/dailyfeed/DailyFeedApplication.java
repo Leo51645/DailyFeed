@@ -2,6 +2,7 @@ package com.github.leo51645.dailyfeed;
 
 import com.github.leo51645.dailyfeed.domain.enums.News_Categories;
 import com.github.leo51645.dailyfeed.domain.dto.response.NewsResponseDto;
+import com.github.leo51645.dailyfeed.service.CurrentsNewsService;
 import com.github.leo51645.dailyfeed.service.GeminiService;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
@@ -29,8 +30,8 @@ public class DailyFeedApplication {
         }
 
         ApplicationContext context = SpringApplication.run(DailyFeedApplication.class, args);
-
         GeminiService geminiService = context.getBean(GeminiService.class);
+
         Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = geminiService.getNewsOneDay(LocalDate.now());
 
         for (Map.Entry<LocalDate, Map<News_Categories, List<NewsResponseDto>>> dayEntry : result.entrySet()) {
@@ -38,7 +39,7 @@ public class DailyFeedApplication {
             for (Map.Entry<News_Categories, List<NewsResponseDto>> categoryEntry : dayEntry.getValue().entrySet()) {
                 System.out.println("  [" + categoryEntry.getKey() + "]");
                 for (NewsResponseDto article : categoryEntry.getValue()) {
-                    System.out.println("    - " + article.getTitle());
+                    System.out.println("    - " + article.getTitle() + " - " + article.getUrl());
                 }
             }
         }

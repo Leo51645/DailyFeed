@@ -22,7 +22,6 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -49,7 +48,8 @@ public class CurrentsNewsService {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                log.error("Currents API error {} for category {} on page {}", response.statusCode(), news_category, pageNumber);
+                log.error("Currents API error {} for category {} on page {} with http url {}", response.statusCode(), news_category, pageNumber, uri);
+                System.out.println(response.body());
                 throw new RuntimeException("Failed : HTTP error code : " + response.statusCode()); // Todo: Exception Handling
             }
 
@@ -104,10 +104,12 @@ public class CurrentsNewsService {
     }
 
     public List<NewsResponseDto> getNewsOneDay(LocalDate date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
         log.info("Fetching news for date {}", date);
         List<NewsResponseDto> allNewsOneDay = new ArrayList<>();
 
-        OffsetDateTime startDate = OffsetDateTime.of(date, LocalTime.of(0, 0, 0), ZoneOffset.UTC);
+        OffsetDateTime offsetDateTimeStartDate = OffsetDateTime.of(date, LocalTime.of(0, 0, 0), ZoneOffset.UTC);
         OffsetDateTime endDate = OffsetDateTime.of(date, LocalTime.of(23, 59, 59), ZoneOffset.UTC);
 
         // for each existing category get all articles of a specific day, save them in a list and put these lists together so there is one list with all categories for each day
@@ -115,6 +117,8 @@ public class CurrentsNewsService {
             boolean isNextPage = true;
             List<NewsResponseDto> newsListOneCategoryAllPages = new ArrayList<>();
             int i = 1;
+
+            String startDate = offsetDateTimeStartDate.format(formatter);
 
             while (isNextPage) {
                 HttpResponse<String> httpResponse = getHttpNewsResponse(news_category, startDate.toString(), endDate.toString(), i);
