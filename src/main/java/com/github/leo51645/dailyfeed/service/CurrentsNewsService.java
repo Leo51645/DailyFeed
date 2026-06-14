@@ -110,7 +110,7 @@ public class CurrentsNewsService {
         List<NewsResponseDto> allNewsOneDay = new ArrayList<>();
 
         OffsetDateTime offsetDateTimeStartDate = OffsetDateTime.of(date, LocalTime.of(0, 0, 0), ZoneOffset.UTC);
-        OffsetDateTime endDate = OffsetDateTime.of(date, LocalTime.of(23, 59, 59), ZoneOffset.UTC);
+        OffsetDateTime offsetDateTimeEndDate = OffsetDateTime.of(date, LocalTime.of(23, 59, 59), ZoneOffset.UTC);
 
         // for each existing category get all articles of a specific day, save them in a list and put these lists together so there is one list with all categories for each day
         for (News_Categories news_category : News_Categories.values()) {
@@ -119,9 +119,10 @@ public class CurrentsNewsService {
             int i = 1;
 
             String startDate = offsetDateTimeStartDate.format(formatter);
+            String endDate = offsetDateTimeEndDate.format(formatter);
 
             while (isNextPage) {
-                HttpResponse<String> httpResponse = getHttpNewsResponse(news_category, startDate.toString(), endDate.toString(), i);
+                HttpResponse<String> httpResponse = getHttpNewsResponse(news_category, startDate, endDate, i);
                 i++;
 
                 JSONObject root = new JSONObject(httpResponse.body());
