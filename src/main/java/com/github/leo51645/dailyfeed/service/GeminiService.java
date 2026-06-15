@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.concurrent.CompletableFuture;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -233,9 +234,16 @@ public class GeminiService {
 
     public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> getNewsAllDays(LocalDate date) {
         log.info("Requesting Gemini ranking for 3 days ending {}", date);
-        List<NewsResponseDto> day1News = currentsNewsService.getNewsOneDay(date.minusDays(2));
-        List<NewsResponseDto> day2News = currentsNewsService.getNewsOneDay(date.minusDays(1));
-        List<NewsResponseDto> todayNews = currentsNewsService.getNewsOneDay(date);
+
+        CompletableFuture<List<NewsResponseDto>> day1Future = CompletableFuture.supplyAsync(() -> currentsNewsService.getNewsOneDay(date.minusDays(2)));
+        CompletableFuture<List<NewsResponseDto>> day2Future = CompletableFuture.supplyAsync(() -> currentsNewsService.getNewsOneDay(date.minusDays(1)));
+        CompletableFuture<List<NewsResponseDto>> todayFuture = CompletableFuture.supplyAsync(() -> currentsNewsService.getNewsOneDay(date));
+
+        CompletableFuture.allOf(day1Future, day2Future, todayFuture).join();
+
+        List<NewsResponseDto> day1News = day1Future.join();
+        List<NewsResponseDto> day2News = day2Future.join();
+        List<NewsResponseDto> todayNews = todayFuture.join();
         log.info("Sending {} articles to Gemini", day1News.size() + day2News.size() + todayNews.size());
 
         GenerateContentResponse aiResponse = getGeminiNewsResponseAllDays(day1News, day2News, todayNews);

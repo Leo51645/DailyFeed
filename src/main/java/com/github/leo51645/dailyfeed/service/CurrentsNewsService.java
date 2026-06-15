@@ -104,6 +104,7 @@ public class CurrentsNewsService {
         return newsList;
     }
 
+    // get news in parallel sequence instead of one by one
     public List<NewsResponseDto> getNewsOneDay(LocalDate date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
@@ -111,7 +112,7 @@ public class CurrentsNewsService {
         List<NewsResponseDto> allNewsOneDay = new ArrayList<>();
 
         OffsetDateTime offsetDateTimeStartDate = OffsetDateTime.of(date, LocalTime.of(0, 0, 0), ZoneOffset.UTC);
-        OffsetDateTime offsetDateTimeEndDate = OffsetDateTime.of(date, LocalTime.of(2, 59, 59), ZoneOffset.UTC);
+        OffsetDateTime offsetDateTimeEndDate = OffsetDateTime.of(date, LocalTime.of(23, 59, 59), ZoneOffset.UTC);
 
         String startDate = offsetDateTimeStartDate.format(formatter);
         String endDate = offsetDateTimeEndDate.format(formatter);

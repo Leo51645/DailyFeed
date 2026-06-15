@@ -29,20 +29,7 @@ public class DailyFeedApplication {
             System.setProperty("GEMINI_API_KEY", geminiApiKey);
         }
 
-        ApplicationContext context = SpringApplication.run(DailyFeedApplication.class, args);
-        GeminiService geminiService = context.getBean(GeminiService.class);
-
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = geminiService.getNewsOneDay(LocalDate.now());
-
-        for (Map.Entry<LocalDate, Map<News_Categories, List<NewsResponseDto>>> dayEntry : result.entrySet()) {
-            System.out.println("\n=== " + dayEntry.getKey() + " ===");
-            for (Map.Entry<News_Categories, List<NewsResponseDto>> categoryEntry : dayEntry.getValue().entrySet()) {
-                System.out.println("  [" + categoryEntry.getKey() + "]");
-                for (NewsResponseDto article : categoryEntry.getValue()) {
-                    System.out.println("    - " + article.getTitle() + " - " + article.getUrl());
-                }
-            }
-        }
+        SpringApplication.run(DailyFeedApplication.class, args);
 
     }
 
