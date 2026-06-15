@@ -82,6 +82,7 @@ public class GeminiService {
                 "- Convert the publishedAt timestamp exactly as mentioned\n" +
                 "- If and ONLY if the category field is null at no other condition, you can choose the best fitting category out of these 5: " +
                         "politics_government, sport, society, economy_business_finance, science_technology\n" +
+                "- If fewer than 5 articles are available for a category, return only the articles that exist. Never pad or repeat entries to reach 5." +
                 "\n" +
                 "Here are the articles:\n" +
                 "\n" +

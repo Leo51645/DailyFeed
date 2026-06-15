@@ -13,8 +13,8 @@ public class CurrentsNewsUtil {
                 apiKey + "&language=de&category=" +
                 news_category.getCategoryName() + "&start_date=" + startDate + "&end_date=" + endDate +
                 "&domain_not=noz.de,bild.de,kleinezeitung.de,merkur.de,sueddeutsche.de,tt.com,focus.de,taz.de,cicero.de," +
-                "nachdenkseiten.de,rollingstone.de,golem.de,presseportal.de,woz.ch,blick.ch,hna.de,watson.de,manager-magazin.de," +
-                "t3n.de,heise.de,spektrum.de,hardwareluxx.de,blog.gwup.net,dev.to,diepresse.com,computerbild.de,nzz.ch," +
+                "nachdenkseiten.de,rollingstone.de,presseportal.de,woz.ch,blick.ch,hna.de,watson.de,manager-magazin.de," +
+                "spektrum.de,hardwareluxx.de,blog.gwup.net,dev.to,diepresse.com,computerbild.de,nzz.ch," +
                 "kleinezeitung.at,globenewswire.com,tagesanzeiger.ch,prnewswire.com,orf.at,bernerzeitung.ch,ooe.orf.at,tirol.orf.at,steiermark.orf.at,sport.orf.at," +
                 "kurier.at,miamiherald.com,markets.ft.com" +
                 "&page_number=" + pageNumber;
