@@ -4,6 +4,7 @@ import com.github.leo51645.dailyfeed.domain.dto.response.NewsResponseDto;
 import com.github.leo51645.dailyfeed.domain.enums.News_Categories;
 import com.github.leo51645.dailyfeed.util.CurrentsNewsUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,8 +22,9 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CurrentsNewsService {
@@ -47,9 +49,12 @@ public class CurrentsNewsService {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
+                log.error("Currents API error {} for category {} on page {} with http url {}", response.statusCode(), news_category, pageNumber, uri);
+                System.out.println(response.body());
                 throw new RuntimeException("Failed : HTTP error code : " + response.statusCode()); // Todo: Exception Handling
             }
 
+            log.debug("Currents API response received for category {} page {}", news_category, pageNumber);
             return response;
         } catch (IOException e) {
             throw new RuntimeException(e); //Todo: Exception Handling
@@ -71,6 +76,9 @@ public class CurrentsNewsService {
             JSONObject singleNews = allNews.getJSONObject(i);
 
             String title = singleNews.getString("title");
+            // if article is a spiegel+ article skip this one
+            if (title.contains("(S+)")) continue;
+
             String description = singleNews.getString("description");
             String url = singleNews.getString("url");
             JSONArray responseCategories = singleNews.getJSONArray("category");
@@ -96,33 +104,51 @@ public class CurrentsNewsService {
         return newsList;
     }
 
+    // get news in parallel sequence instead of one by one
     public List<NewsResponseDto> getNewsOneDay(LocalDate date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+        log.info("Fetching news for date {}", date);
         List<NewsResponseDto> allNewsOneDay = new ArrayList<>();
 
-        OffsetDateTime startDate = OffsetDateTime.of(date, LocalTime.of(0, 0, 0), ZoneOffset.UTC);
-        OffsetDateTime endDate = OffsetDateTime.of(date, LocalTime.of(23, 59, 59), ZoneOffset.UTC);
+        OffsetDateTime offsetDateTimeStartDate = OffsetDateTime.of(date, LocalTime.of(0, 0, 0), ZoneOffset.UTC);
+        OffsetDateTime offsetDateTimeEndDate = OffsetDateTime.of(date, LocalTime.of(23, 59, 59), ZoneOffset.UTC);
 
-        // for each existing category get all articles of a specific day, save them in a list and put these lists together so there is one list with all categories for each day
+        String startDate = offsetDateTimeStartDate.format(formatter);
+        String endDate = offsetDateTimeEndDate.format(formatter);
+
+        List<CompletableFuture<List<NewsResponseDto>>> futures = new ArrayList<>();
+
         for (News_Categories news_category : News_Categories.values()) {
-            boolean isNextPage = true;
-            List<NewsResponseDto> newsListOneCategoryAllPages = new ArrayList<>();
-            int i = 1;
+            CompletableFuture<List<NewsResponseDto>> future = CompletableFuture.supplyAsync(() -> {
+                boolean isNextPage = true;
+                List<NewsResponseDto> newsListOneCategoryAllPages = new ArrayList<>();
+                int i = 1;
 
-            while (isNextPage) {
-                HttpResponse<String> httpResponse = getHttpNewsResponse(news_category, startDate.toString(), endDate.toString(), i);
-                i++;
+                while (isNextPage) {
+                    HttpResponse<String> httpResponse = getHttpNewsResponse(news_category, startDate, endDate, i);
+                    i++;
 
-                JSONObject root = new JSONObject(httpResponse.body());
-                boolean next_cursorIsNull = root.isNull("next_cursor");
+                    JSONObject root = new JSONObject(httpResponse.body());
+                    boolean next_cursorIsNull = root.isNull("next_cursor");
 
-                if (next_cursorIsNull) isNextPage = false;
+                    if (next_cursorIsNull) isNextPage = false;
 
-                List<NewsResponseDto> newsListOneCategorySinglePage = parseNews(root);
-                newsListOneCategoryAllPages.addAll(newsListOneCategorySinglePage);
-            }
-            allNewsOneDay.addAll(newsListOneCategoryAllPages);
-
+                    List<NewsResponseDto> newsListOneCategorySinglePage = parseNews(root);
+                    newsListOneCategoryAllPages.addAll(newsListOneCategorySinglePage);
+                }
+                log.info("Fetched {} articles for category {}", newsListOneCategoryAllPages.size(), news_category);
+                return newsListOneCategoryAllPages;
+            });
+            futures.add(future);
         }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        for (CompletableFuture<List<NewsResponseDto>> future : futures) {
+            allNewsOneDay.addAll(future.join());
+        }
+        log.info("Total articles fetched for {}: {}", date, allNewsOneDay.size());
         return allNewsOneDay;
     }
 }

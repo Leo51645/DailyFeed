@@ -1,8 +1,17 @@
 package com.github.leo51645.dailyfeed;
 
+import com.github.leo51645.dailyfeed.domain.enums.News_Categories;
+import com.github.leo51645.dailyfeed.domain.dto.response.NewsResponseDto;
+import com.github.leo51645.dailyfeed.service.CurrentsNewsService;
+import com.github.leo51645.dailyfeed.service.GeminiService;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 @SpringBootApplication
 public class DailyFeedApplication {
@@ -14,6 +23,10 @@ public class DailyFeedApplication {
         String currentsApiKey = dotenv.get("CURRENTS_API_KEY");
         if (currentsApiKey != null) {
             System.setProperty("CURRENTS_API_KEY", currentsApiKey);
+        }
+        String geminiApiKey = dotenv.get("GEMINI_API_KEY");
+        if (geminiApiKey != null) {
+            System.setProperty("GEMINI_API_KEY", geminiApiKey);
         }
 
         SpringApplication.run(DailyFeedApplication.class, args);
