@@ -22,6 +22,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -110,31 +111,41 @@ public class CurrentsNewsService {
         List<NewsResponseDto> allNewsOneDay = new ArrayList<>();
 
         OffsetDateTime offsetDateTimeStartDate = OffsetDateTime.of(date, LocalTime.of(0, 0, 0), ZoneOffset.UTC);
-        OffsetDateTime offsetDateTimeEndDate = OffsetDateTime.of(date, LocalTime.of(23, 59, 59), ZoneOffset.UTC);
+        OffsetDateTime offsetDateTimeEndDate = OffsetDateTime.of(date, LocalTime.of(2, 59, 59), ZoneOffset.UTC);
 
-        // for each existing category get all articles of a specific day, save them in a list and put these lists together so there is one list with all categories for each day
+        String startDate = offsetDateTimeStartDate.format(formatter);
+        String endDate = offsetDateTimeEndDate.format(formatter);
+
+        List<CompletableFuture<List<NewsResponseDto>>> futures = new ArrayList<>();
+
         for (News_Categories news_category : News_Categories.values()) {
-            boolean isNextPage = true;
-            List<NewsResponseDto> newsListOneCategoryAllPages = new ArrayList<>();
-            int i = 1;
+            CompletableFuture<List<NewsResponseDto>> future = CompletableFuture.supplyAsync(() -> {
+                boolean isNextPage = true;
+                List<NewsResponseDto> newsListOneCategoryAllPages = new ArrayList<>();
+                int i = 1;
 
-            String startDate = offsetDateTimeStartDate.format(formatter);
-            String endDate = offsetDateTimeEndDate.format(formatter);
+                while (isNextPage) {
+                    HttpResponse<String> httpResponse = getHttpNewsResponse(news_category, startDate, endDate, i);
+                    i++;
 
-            while (isNextPage) {
-                HttpResponse<String> httpResponse = getHttpNewsResponse(news_category, startDate, endDate, i);
-                i++;
+                    JSONObject root = new JSONObject(httpResponse.body());
+                    boolean next_cursorIsNull = root.isNull("next_cursor");
 
-                JSONObject root = new JSONObject(httpResponse.body());
-                boolean next_cursorIsNull = root.isNull("next_cursor");
+                    if (next_cursorIsNull) isNextPage = false;
 
-                if (next_cursorIsNull) isNextPage = false;
+                    List<NewsResponseDto> newsListOneCategorySinglePage = parseNews(root);
+                    newsListOneCategoryAllPages.addAll(newsListOneCategorySinglePage);
+                }
+                log.info("Fetched {} articles for category {}", newsListOneCategoryAllPages.size(), news_category);
+                return newsListOneCategoryAllPages;
+            });
+            futures.add(future);
+        }
 
-                List<NewsResponseDto> newsListOneCategorySinglePage = parseNews(root);
-                newsListOneCategoryAllPages.addAll(newsListOneCategorySinglePage);
-            }
-            log.info("Fetched {} articles for category {}", newsListOneCategoryAllPages.size(), news_category);
-            allNewsOneDay.addAll(newsListOneCategoryAllPages);
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        for (CompletableFuture<List<NewsResponseDto>> future : futures) {
+            allNewsOneDay.addAll(future.join());
         }
         log.info("Total articles fetched for {}: {}", date, allNewsOneDay.size());
         return allNewsOneDay;
