@@ -180,7 +180,10 @@ public class GeminiService {
 
                 String responseCategory = categoryFilter.getString("category");
                 News_Categories category = currentsNewsUtil.getNewsCategoryFromResponseCategory(responseCategory);
-                if (category == null) log.warn("Unknown category string from Gemini: '{}'", responseCategory);
+                if (category == null) {
+                    log.warn("Unknown category string from Gemini: '{}'", responseCategory);
+                    continue;
+                }
 
                 JSONArray articles = categoryFilter.getJSONArray("articles");
 
