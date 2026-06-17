@@ -16,31 +16,29 @@ import java.util.function.Consumer;
  */
 public class NewsCategoryPanel extends JPanel {
 
-    private static final int PANEL_WIDTH = 340;
+    private static final int LIST_WIDTH = 420;
 
     private final Map<News_Categories, JToggleButton> categoryButtons = new LinkedHashMap<>();
     private final DefaultListModel<NewsResponseDto> listModel = new DefaultListModel<>();
     private final JList<NewsResponseDto> articleList = new JList<>(listModel);
+    private final JPanel buttonPanel;
 
     private Map<News_Categories, List<NewsResponseDto>> newsByCategory = Map.of();
     private Consumer<NewsResponseDto> articleSelectedListener = article -> {};
 
     public NewsCategoryPanel() {
         super(new BorderLayout());
-        setPreferredSize(new Dimension(PANEL_WIDTH, 0));
+        setPreferredSize(new Dimension(LIST_WIDTH, 0));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         ButtonGroup buttonGroup = new ButtonGroup();
         News_Categories[] categories = News_Categories.values();
-        // laid out horizontally (in a row) instead of stacked top-to-bottom
-        JPanel buttonPanel = new JPanel(new GridLayout(1, categories.length, 4, 0));
+        buttonPanel = new JPanel(new GridLayout(1, categories.length, 4, 0));
 
-        int buttonWidth = (PANEL_WIDTH - 20) / categories.length;
         for (News_Categories category : categories) {
-            JToggleButton button = new JToggleButton(
-                    "<html><div style='text-align:center; width:" + (buttonWidth - 10) + "px;'>"
-                            + category.getGermanTranslation() + "</div></html>");
-            button.setFont(button.getFont().deriveFont(11f));
+            JToggleButton button = new JToggleButton(category.getGermanTranslation());
+            button.setFont(button.getFont().deriveFont(12f));
+            button.setMargin(new Insets(3, 6, 3, 6));
             button.addActionListener(e -> selectCategory(category));
 
             buttonGroup.add(button);
@@ -59,12 +57,13 @@ public class NewsCategoryPanel extends JPanel {
             }
         });
 
-        JPanel northPanel = new JPanel(new BorderLayout());
-        northPanel.add(buttonPanel, BorderLayout.NORTH);
-        northPanel.add(Box.createVerticalStrut(10), BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(articleList);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        add(scrollPane, BorderLayout.CENTER);
+    }
 
-        add(northPanel, BorderLayout.NORTH);
-        add(new JScrollPane(articleList), BorderLayout.CENTER);
+    public JPanel getButtonPanel() {
+        return buttonPanel;
     }
 
     public void setOnArticleSelected(Consumer<NewsResponseDto> listener) {
@@ -92,27 +91,47 @@ public class NewsCategoryPanel extends JPanel {
         }
     }
 
-    private static class ArticleListCellRenderer extends DefaultListCellRenderer {
-        @Override
-        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-                                                        boolean isSelected, boolean cellHasFocus) {
-            super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-            setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(230, 230, 230)),
-                    BorderFactory.createEmptyBorder(12, 10, 12, 10)));
-            setFont(getFont().deriveFont(14f));
-            if (value instanceof NewsResponseDto article) {
-                setText("<html><body style='width: " + (PANEL_WIDTH - 50) + "px'>"
-                        + escapeHtml(article.getTitle()) + "</body></html>");
-            }
-            return this;
-        }
-    }
+    private static class ArticleListCellRenderer implements ListCellRenderer<NewsResponseDto> {
 
-    private static String escapeHtml(String text) {
-        if (text == null) {
-            return "";
+        @Override
+        public Component getListCellRendererComponent(JList<? extends NewsResponseDto> list,
+                                                       NewsResponseDto value, int index,
+                                                       boolean isSelected, boolean cellHasFocus) {
+            Color bg = isSelected ? list.getSelectionBackground() : list.getBackground();
+            Color fg = isSelected ? list.getSelectionForeground() : list.getForeground();
+
+            JLabel numLabel = new JLabel((index + 1) + ".");
+            numLabel.setFont(numLabel.getFont().deriveFont(Font.BOLD, 13f));
+            numLabel.setVerticalAlignment(SwingConstants.TOP);
+            numLabel.setForeground(fg);
+            numLabel.setBackground(bg);
+            numLabel.setOpaque(true);
+
+            JTextArea textArea = new JTextArea(value != null ? value.getTitle() : "");
+            textArea.setLineWrap(true);
+            textArea.setWrapStyleWord(true);
+            textArea.setEditable(false);
+            textArea.setOpaque(true);
+            textArea.setBackground(bg);
+            textArea.setForeground(fg);
+            textArea.setFont(textArea.getFont().deriveFont(14f));
+
+            // Give textArea its real width so getPreferredSize() returns the correct wrapped height
+            int availWidth = list.getWidth() - 60;
+            if (availWidth > 0) {
+                textArea.setSize(new Dimension(availWidth, Integer.MAX_VALUE));
+            }
+
+            JPanel panel = new JPanel(new BorderLayout(8, 0));
+            panel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(230, 230, 230)),
+                    BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+            panel.setBackground(bg);
+            panel.setOpaque(true);
+            panel.add(numLabel, BorderLayout.WEST);
+            panel.add(textArea, BorderLayout.CENTER);
+
+            return panel;
         }
-        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 }
