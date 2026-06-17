@@ -53,7 +53,7 @@ public class MainFrame extends JFrame {
         topBarPanel = new TopBarPanel(this::loadData);
         newsCategoryPanel = new NewsCategoryPanel();
         articleDetailPanel = new ArticleDetailPanel();
-        marketOverviewPanel = new MarketOverviewPanel();
+        marketOverviewPanel = new MarketOverviewPanel(this::refreshMarket);
 
         newsCategoryPanel.setOnArticleSelected(articleDetailPanel::showArticle);
 
@@ -62,10 +62,23 @@ public class MainFrame extends JFrame {
                 BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY),
                 BorderFactory.createEmptyBorder(6, 0, 6, 0)));
 
+        JPanel buttonWrapper = new JPanel(new BorderLayout());
+        buttonWrapper.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)));
+        buttonWrapper.add(newsCategoryPanel.getButtonPanel(), BorderLayout.CENTER);
+
+        JPanel newsAndDetail = new JPanel(new BorderLayout());
+        newsAndDetail.add(newsCategoryPanel, BorderLayout.WEST);
+        newsAndDetail.add(articleDetailPanel, BorderLayout.CENTER);
+
+        JPanel centerContent = new JPanel(new BorderLayout());
+        centerContent.add(buttonWrapper, BorderLayout.NORTH);
+        centerContent.add(newsAndDetail, BorderLayout.CENTER);
+
         setLayout(new BorderLayout());
         add(topBarPanel, BorderLayout.NORTH);
-        add(newsCategoryPanel, BorderLayout.WEST);
-        add(articleDetailPanel, BorderLayout.CENTER);
+        add(centerContent, BorderLayout.CENTER);
         add(marketOverviewPanel, BorderLayout.EAST);
         add(loadedDateLabel, BorderLayout.SOUTH);
     }
@@ -97,6 +110,26 @@ public class MainFrame extends JFrame {
                     JOptionPane.showMessageDialog(MainFrame.this,
                             "Daten konnten nicht geladen werden:\n" + e.getCause(),
                             "Fehler", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
+    }
+
+    private void refreshMarket() {
+        marketOverviewPanel.setRefreshing(true);
+        new SwingWorker<Map<Assets, List<AssetResponseDto>>, Void>() {
+            @Override
+            protected Map<Assets, List<AssetResponseDto>> doInBackground() {
+                return yahooFinanceService.getAllAssets();
+            }
+
+            @Override
+            protected void done() {
+                marketOverviewPanel.setRefreshing(false);
+                try {
+                    marketOverviewPanel.setAssets(LocalDate.now(), get());
+                } catch (Exception e) {
+                    log.error("Failed to refresh market data", e);
                 }
             }
         }.execute();
