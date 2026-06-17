@@ -94,6 +94,55 @@ public class GeminiService {
                 "Today:\n" + geminiServiceUtil.NewsListToJson(today)
                 , null);
     }
+    private GenerateContentResponse getGeminiNewsResponseTwoDays(List<NewsResponseDto> yeserday, List<NewsResponseDto> today) {
+        return client.models.generateContent("gemini-3.5-flash",
+                "You are a news ranking assistant. You will receive news articles from two different days, each containing multiple categories.\n" +
+                        "\n" +
+                        "Your task:\n" +
+                        "1. For each day and each category, select the 5 most important and relevant articles\n" +
+                        "2. Base your ranking on: relevance, significance of the event, and informational value\n" +
+                        "3. Remove duplicate articles (same story, different sources) — keep only the most informative version\n" +
+                        "4. Convert all publishedAt timestamps to exactly this format: \"yyyy-MM-dd HH:mm:ss +0000\" (example: \"2026-06-12 23:31:14 +0000\")\n" +
+                        "5. Return ONLY a valid JSON array, no markdown, no explanation, no code blocks\n" +
+                        "\n" +
+                        "The JSON must follow this exact structure:\n" +
+                        "[\n" +
+                        "  {\n" +
+                        "    \"date\": \"YYYY-MM-DD\",\n" +
+                        "    \"topNews\": [\n" +
+                        "      {\n" +
+                        "        \"category\": \"CATEGORY_NAME\",\n" +
+                        "        \"articles\": [\n" +
+                        "          {\n" +
+                        "            \"title\": \"...\",\n" +
+                        "            \"description\": \"...\",\n" +
+                        "            \"url\": \"...\",\n" +
+                        "            \"publishedAt\": \"...\"\n" +
+                        "          }\n" +
+                        "        ]\n" +
+                        "      }\n" +
+                        "    ]\n" +
+                        "  }\n" +
+                        "]\n" +
+                        "\n" +
+                        "Important rules:\n" +
+                        "- Return ONLY the JSON, nothing else! - This is very important!\n" +
+                        "- Every day must appear exactly once\n" +
+                        "- Every category must appear exactly once per day\n" +
+                        "- Each category must have exactly 5 articles\n" +
+                        "- Do not invent or modify articles — only use what is provided\n" +
+                        "- Convert the publishedAt timestamp exactly as mentioned\n" +
+                        "- If and ONLY if the category field is null at no other condition, you can choose the best fitting category out of these 5: " +
+                        "politics_government, sport, society, economy_business_finance, science_technology\n" +
+                        "- If fewer than 5 articles are available for a category, return only the articles that exist. Never pad or repeat entries to reach 5." +
+                        "\n" +
+                        "Here are the articles:\n" +
+                        "\n" +
+                        "Yesterday:\n" + geminiServiceUtil.NewsListToJson(yeserday) +
+                        "\n" +
+                        "Today:\n" + geminiServiceUtil.NewsListToJson(today)
+                , null);
+    }
     private GenerateContentResponse getGeminiNewsResponseOneDay(List<NewsResponseDto> newsOneDay) {
         return client.models.generateContent("gemini-3.5-flash",
                 "You are a news ranking assistant. You will receive news articles from one single day, each containing multiple categories.\n" +
@@ -225,6 +274,26 @@ public class GeminiService {
         log.info("Sending {} articles to Gemini", newsSingleDay.size());
 
         GenerateContentResponse aiResponse = getGeminiNewsResponseOneDay(newsSingleDay);
+        log.info("Gemini response received, parsing...");
+
+        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponse(aiResponse);
+        log.info("Parsed {} days from Gemini response", result.size());
+        return result;
+    }
+
+    public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> getNewsTwoDays(LocalDate date) {
+        log.info("Requesting Gemini ranking for 3 days ending {}", date);
+
+        CompletableFuture<List<NewsResponseDto>> day2Future = CompletableFuture.supplyAsync(() -> currentsNewsService.getNewsOneDay(date.minusDays(1)));
+        CompletableFuture<List<NewsResponseDto>> todayFuture = CompletableFuture.supplyAsync(() -> currentsNewsService.getNewsOneDay(date));
+
+        CompletableFuture.allOf(day2Future, todayFuture).join();
+
+        List<NewsResponseDto> day2News = day2Future.join();
+        List<NewsResponseDto> todayNews = todayFuture.join();
+        log.info("Sending {} articles to Gemini", day2News.size() + todayNews.size());
+
+        GenerateContentResponse aiResponse = getGeminiNewsResponseTwoDays(day2News, todayNews);
         log.info("Gemini response received, parsing...");
 
         Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponse(aiResponse);
