@@ -12,10 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -55,9 +52,9 @@ public class CacheService {
     }
 
     public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> loadAllCachedDays(LocalDate today) {
-        String day1CachedString = "";
-        String day2CachedString = "";
-        String todayCachedString = "";
+        String day1CachedString;
+        String day2CachedString;
+        String todayCachedString;
 
         List<String> existingCachedDays = new ArrayList<>();
 
@@ -88,7 +85,7 @@ public class CacheService {
             }
         }
         if (existingCachedDays.isEmpty()) {
-            return Collections.emptyMap();
+            return new HashMap<>();
         }
 
         String cominedFiles = String.join(",", existingCachedDays);
