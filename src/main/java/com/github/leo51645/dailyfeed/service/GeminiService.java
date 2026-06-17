@@ -16,13 +16,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -190,7 +187,7 @@ public class GeminiService {
                 , null);
     }
 
-    private Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> parseAIResponse(GenerateContentResponse aiResponse) {
+    private Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> parseAIResponseToMap(GenerateContentResponse aiResponse) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[ XX][ XXX]");
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -267,6 +264,40 @@ public class GeminiService {
         }
         return allNews;
     }
+    // for caching
+    private Map<String, JSONObject> parseAiResponseToJsonObject(GenerateContentResponse aiResponse) {
+        Map<String, JSONObject> news = new HashMap<>();
+
+        if (aiResponse == null) {
+            return news;
+        }
+
+        String responseString = aiResponse.text().trim();
+
+        if (responseString.startsWith("```")) {
+            responseString = responseString.replaceAll("^```[a-zA-Z]*\\n?", "").replaceAll("```$", "").trim();
+        }
+
+        JSONArray root = null;
+        try {
+            root = new JSONArray(responseString);
+        } catch (JSONException e) {
+            e.printStackTrace(); // TODO: Error Handling -> wrong AI response pattern
+        }
+
+        if (root == null) {
+            return news;
+        }
+
+        // for each existing date
+        for (int i = 0; i < root.length(); i++) {
+            JSONObject day = root.getJSONObject(i);
+            String date = day.getString("date");
+
+            news.put(date, day);
+        }
+        return news;
+    }
 
     public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> getNewsOneDay(LocalDate date) {
         log.info("Requesting Gemini ranking for single day {}", date);
@@ -276,7 +307,7 @@ public class GeminiService {
         GenerateContentResponse aiResponse = getGeminiNewsResponseOneDay(newsSingleDay);
         log.info("Gemini response received, parsing...");
 
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponse(aiResponse);
+        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponseToMap(aiResponse);
         log.info("Parsed {} days from Gemini response", result.size());
         return result;
     }
@@ -296,7 +327,7 @@ public class GeminiService {
         GenerateContentResponse aiResponse = getGeminiNewsResponseTwoDays(day2News, todayNews);
         log.info("Gemini response received, parsing...");
 
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponse(aiResponse);
+        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponseToMap(aiResponse);
         log.info("Parsed {} days from Gemini response", result.size());
         return result;
     }
@@ -318,7 +349,7 @@ public class GeminiService {
         GenerateContentResponse aiResponse = getGeminiNewsResponseAllDays(day1News, day2News, todayNews);
         log.info("Gemini response received, parsing...");
 
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponse(aiResponse);
+        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponseToMap(aiResponse);
         log.info("Parsed {} days from Gemini response", result.size());
         return result;
     }
