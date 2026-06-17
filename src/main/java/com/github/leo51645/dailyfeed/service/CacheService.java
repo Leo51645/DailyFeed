@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -53,17 +55,44 @@ public class CacheService {
     }
 
     public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> loadAllCachedDays(LocalDate today) {
-        String day1CachedString;
-        String day2CachedString;
-        String todayCachedString;
-        try {
-            day1CachedString = Files.readString(cacheUtil.getCacheURI(today.minusDays(2).toString()));
-            day2CachedString = Files.readString(cacheUtil.getCacheURI(today.minusDays(1).toString()));
-            todayCachedString = Files.readString(cacheUtil.getCacheURI(today.toString()));
-        } catch (IOException e) {
-            throw new RuntimeException(e); // TODO: Exception Handling
+        String day1CachedString = "";
+        String day2CachedString = "";
+        String todayCachedString = "";
+
+        List<String> existingCachedDays = new ArrayList<>();
+
+        List<LocalDate> oldCacheFiles =  new ArrayList<>();
+
+        if (Files.exists(cacheUtil.getCacheURI(today.minusDays(2).toString()))) {
+            try {
+                day1CachedString = Files.readString(cacheUtil.getCacheURI(today.minusDays(2).toString()));
+                existingCachedDays.add(day1CachedString);
+            } catch (IOException e) {
+                throw new RuntimeException(e); // Todo: Exception Handling
+            }
         }
-        String response = "[" + day1CachedString + "," + day2CachedString + "," + todayCachedString + "]";
+        if (Files.exists(cacheUtil.getCacheURI(today.minusDays(1).toString()))) {
+            try {
+                day2CachedString = Files.readString(cacheUtil.getCacheURI(today.minusDays(1).toString()));
+                existingCachedDays.add(day2CachedString);
+            } catch (IOException e) {
+                throw new RuntimeException(e); // Todo: Exception Handling
+            }
+        }
+        if (Files.exists(cacheUtil.getCacheURI(today.toString()))) {
+            try {
+                todayCachedString = Files.readString(cacheUtil.getCacheURI(today.toString()));
+                existingCachedDays.add(todayCachedString);
+            } catch (IOException e) {
+                throw new RuntimeException(e); // Todo: Exception Handling
+            }
+        }
+        if (existingCachedDays.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        String cominedFiles = String.join(",", existingCachedDays);
+        String response = "[" + cominedFiles + "]";
 
         Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> cachedNews = geminiService.parseAIResponseToMap(response);
 
@@ -71,9 +100,14 @@ public class CacheService {
             LocalDate keyDate = entry.getKey();
             if (keyDate.isBefore(today.minusDays(2))) {
                 delete(keyDate);
-                cachedNews.remove(keyDate);
+                oldCacheFiles.add(keyDate);
             }
         }
+
+        for (LocalDate keyDate : oldCacheFiles) {
+            cachedNews.remove(keyDate);
+        }
+
         return cachedNews;
     }
 }
