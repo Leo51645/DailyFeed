@@ -45,7 +45,7 @@ public class ArticleDetailPanel extends JPanel {
 
     private JComponent buildDetailCard() {
         JPanel detailPanel = new JPanel(new BorderLayout());
-        detailPanel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        detailPanel.setBorder(BorderFactory.createEmptyBorder(16, 30, 16, 16));
 
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 18f));
         metaLabel.setForeground(Color.GRAY);
