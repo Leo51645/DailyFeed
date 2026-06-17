@@ -1,6 +1,6 @@
 package com.github.leo51645.dailyfeed.ui;
 
-import com.github.leo51645.dailyfeed.domain.dto.response.NewsResponseDto;
+import com.github.leo51645.dailyfeed.domain.dto.NewsResponseDto;
 import com.github.leo51645.dailyfeed.domain.enums.News_Categories;
 
 import javax.swing.*;
@@ -58,9 +58,17 @@ public class NewsCategoryPanel extends JPanel {
             }
         });
 
+        JLabel headerLabel = new JLabel("Top 5 Artikel des Tages");
+        headerLabel.setFont(headerLabel.getFont().deriveFont(Font.BOLD, 13f));
+        headerLabel.setBorder(BorderFactory.createEmptyBorder(8, 4, 6, 0));
+
         JScrollPane scrollPane = new JScrollPane(articleList);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        add(scrollPane, BorderLayout.CENTER);
+
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.add(headerLabel, BorderLayout.NORTH);
+        centerPanel.add(scrollPane, BorderLayout.CENTER);
+        add(centerPanel, BorderLayout.CENTER);
     }
 
     public JPanel getButtonPanel() {
