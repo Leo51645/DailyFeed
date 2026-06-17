@@ -91,7 +91,7 @@ public class GeminiService {
                 "Today:\n" + geminiServiceUtil.NewsListToJson(today)
                 , null);
     }
-    private GenerateContentResponse getGeminiNewsResponseTwoDays(List<NewsResponseDto> yeserday, List<NewsResponseDto> today) {
+    private GenerateContentResponse getGeminiNewsResponseTwoDays(List<NewsResponseDto> yesterday, List<NewsResponseDto> today) {
         return client.models.generateContent("gemini-3.5-flash",
                 "You are a news ranking assistant. You will receive news articles from two different days, each containing multiple categories.\n" +
                         "\n" +
@@ -135,7 +135,7 @@ public class GeminiService {
                         "\n" +
                         "Here are the articles:\n" +
                         "\n" +
-                        "Yesterday:\n" + geminiServiceUtil.NewsListToJson(yeserday) +
+                        "Yesterday:\n" + geminiServiceUtil.NewsListToJson(yesterday) +
                         "\n" +
                         "Today:\n" + geminiServiceUtil.NewsListToJson(today)
                 , null);
@@ -187,7 +187,7 @@ public class GeminiService {
                 , null);
     }
 
-    private Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> parseAIResponseToMap(GenerateContentResponse aiResponse) {
+    public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> parseAIResponseToMap(String aiResponse) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[ XX][ XXX]");
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -197,7 +197,7 @@ public class GeminiService {
             return allNews;
         }
 
-        String responseString = aiResponse.text().trim();
+        String responseString = aiResponse.trim();
 
         if (responseString.startsWith("```")) {
             responseString = responseString.replaceAll("^```[a-zA-Z]*\\n?", "").replaceAll("```$", "").trim();
@@ -265,7 +265,7 @@ public class GeminiService {
         return allNews;
     }
     // for caching
-    private Map<String, JSONObject> parseAiResponseToJsonObject(GenerateContentResponse aiResponse) {
+    public Map<String, JSONObject> parseAiResponseToJsonObject(GenerateContentResponse aiResponse) {
         Map<String, JSONObject> news = new HashMap<>();
 
         if (aiResponse == null) {
@@ -307,7 +307,7 @@ public class GeminiService {
         GenerateContentResponse aiResponse = getGeminiNewsResponseOneDay(newsSingleDay);
         log.info("Gemini response received, parsing...");
 
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponseToMap(aiResponse);
+        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponseToMap(aiResponse.text());
         log.info("Parsed {} days from Gemini response", result.size());
         return result;
     }
@@ -327,7 +327,7 @@ public class GeminiService {
         GenerateContentResponse aiResponse = getGeminiNewsResponseTwoDays(day2News, todayNews);
         log.info("Gemini response received, parsing...");
 
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponseToMap(aiResponse);
+        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponseToMap(aiResponse.text());
         log.info("Parsed {} days from Gemini response", result.size());
         return result;
     }
@@ -349,7 +349,7 @@ public class GeminiService {
         GenerateContentResponse aiResponse = getGeminiNewsResponseAllDays(day1News, day2News, todayNews);
         log.info("Gemini response received, parsing...");
 
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponseToMap(aiResponse);
+        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponseToMap(aiResponse.text());
         log.info("Parsed {} days from Gemini response", result.size());
         return result;
     }
