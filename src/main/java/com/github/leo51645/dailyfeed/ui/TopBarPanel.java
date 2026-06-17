@@ -1,6 +1,8 @@
 package com.github.leo51645.dailyfeed.ui;
 
 import javax.swing.*;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import java.awt.*;
 import java.net.URL;
 import java.time.LocalDate;
@@ -18,6 +20,7 @@ public class TopBarPanel extends JPanel {
     private final JComboBox<LocalDate> dateComboBox;
     private final JButton loadButton;
     private final JLabel statusLabel;
+    private boolean isLoading = false;
 
     public TopBarPanel(Consumer<LocalDate> onLoad) {
         super(new FlowLayout(FlowLayout.LEFT, 12, 8));
@@ -38,6 +41,14 @@ public class TopBarPanel extends JPanel {
         LocalDate today = LocalDate.now();
         dateComboBox = new JComboBox<>(new LocalDate[]{today, today.minusDays(1), today.minusDays(2)});
         dateComboBox.setRenderer(new DateListCellRenderer());
+        dateComboBox.addPopupMenuListener(new PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                if (isLoading) SwingUtilities.invokeLater(dateComboBox::hidePopup);
+            }
+            @Override public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {}
+            @Override public void popupMenuCanceled(PopupMenuEvent e) {}
+        });
         add(dateComboBox);
 
         loadButton = new JButton("Laden");
@@ -56,8 +67,8 @@ public class TopBarPanel extends JPanel {
 
     /** Disables interaction and shows a loading hint while data is being fetched. */
     public void setLoading(boolean loading) {
+        this.isLoading = loading;
         loadButton.setEnabled(!loading);
-        dateComboBox.setEnabled(!loading);
         statusLabel.setForeground(Color.GRAY);
         statusLabel.setText(loading ? "Lädt Daten..." : " ");
     }
