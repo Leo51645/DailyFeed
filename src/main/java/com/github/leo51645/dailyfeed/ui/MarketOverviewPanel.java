@@ -21,17 +21,37 @@ public class MarketOverviewPanel extends JPanel {
 
     private final DefaultTableModel tableModel;
     private final JTable table;
+    private final JButton refreshButton;
 
-    public MarketOverviewPanel() {
+    public MarketOverviewPanel(Runnable onRefresh) {
         super(new BorderLayout());
         setPreferredSize(new Dimension(270, 0));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JLabel header = new JLabel("Marktübersicht");
         header.setFont(header.getFont().deriveFont(Font.BOLD, 14f));
-        header.setBorder(BorderFactory.createEmptyBorder(0, 2, 10, 0));
 
-        tableModel = new DefaultTableModel(new Object[]{"Asset", "Preis", "Veränderung"}, 0) {
+        JLabel subtitle = new JLabel("Marktdaten immer von heute");
+        subtitle.setFont(subtitle.getFont().deriveFont(10f));
+        subtitle.setForeground(Color.GRAY);
+
+        JPanel titlePanel = new JPanel();
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
+        titlePanel.add(header);
+        titlePanel.add(subtitle);
+
+        refreshButton = new JButton("↻");
+        refreshButton.setFont(refreshButton.getFont().deriveFont(16f));
+        refreshButton.setToolTipText("Marktdaten aktualisieren");
+        refreshButton.setMargin(new Insets(2, 6, 2, 6));
+        refreshButton.addActionListener(e -> onRefresh.run());
+
+        JPanel northPanel = new JPanel(new BorderLayout(6, 0));
+        northPanel.setBorder(BorderFactory.createEmptyBorder(0, 2, 10, 0));
+        northPanel.add(titlePanel, BorderLayout.CENTER);
+        northPanel.add(refreshButton, BorderLayout.EAST);
+
+        tableModel = new DefaultTableModel(new Object[]{"Asset", "Preis", "+/- %"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -48,7 +68,7 @@ public class MarketOverviewPanel extends JPanel {
         table.getColumnModel().getColumn(1).setPreferredWidth(70);
         table.getColumnModel().getColumn(2).setPreferredWidth(70);
 
-        add(header, BorderLayout.NORTH);
+        add(northPanel, BorderLayout.NORTH);
         add(new JScrollPane(table), BorderLayout.CENTER);
     }
 
@@ -77,6 +97,12 @@ public class MarketOverviewPanel extends JPanel {
                     change
             });
         }
+    }
+
+    /** Shows/hides the loading state on the refresh button. */
+    public void setRefreshing(boolean refreshing) {
+        refreshButton.setEnabled(!refreshing);
+        refreshButton.setText(refreshing ? "..." : "↻");
     }
 
     /** Clears the table, e.g. while new data is loading. */
