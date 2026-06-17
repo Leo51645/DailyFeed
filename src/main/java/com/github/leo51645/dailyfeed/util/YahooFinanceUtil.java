@@ -18,7 +18,7 @@ public class YahooFinanceUtil {
 
         return "https://query1.finance.yahoo.com/v8/finance/chart/"
                 + encodedSymbol
-                + "?range=6d&interval=1d&includePrePost=false&events=history&corsDomain=finance.yahoo.com";
+                + "?range=3d&interval=1d&includePrePost=false&events=history&corsDomain=finance.yahoo.com";
     }
 
     public BigDecimal percentageDifference(BigDecimal currentPrice, BigDecimal previousClosePrice) {
