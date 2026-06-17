@@ -92,7 +92,7 @@ public class MarketOverviewPanel extends JPanel {
             BigDecimal change = dto.isMarketClosed() ? dto.getChangePercentClosedMarket() : dto.getChangePercentIntraday();
 
             tableModel.addRow(new Object[]{
-                    new String[]{asset.getDisplayName(), asset.getSymbol()},
+                    new Object[]{asset.getDisplayName(), asset.getSymbol(), dto.isMarketClosed()},
                     dto.getCurrentPrice(),
                     change
             });
@@ -124,10 +124,16 @@ public class MarketOverviewPanel extends JPanel {
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
                                                           boolean hasFocus, int row, int column) {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            setHorizontalAlignment(SwingConstants.CENTER);
-            if (value instanceof String[] nameAndSymbol) {
-                setText("<html><div style='text-align:center;'>" + nameAndSymbol[0]
-                        + "<br><font size='2' color='gray'>" + nameAndSymbol[1] + "</font></div></html>");
+            setHorizontalAlignment(SwingConstants.LEFT);
+            if (value instanceof Object[] data) {
+                String name = (String) data[0];
+                String symbol = (String) data[1];
+                boolean closed = (boolean) data[2];
+                String dot = closed
+                        ? "<font color='#888888'>●</font>"
+                        : "<font color='#00aa00'>●</font>";
+                setText("<html><div>" + dot + " " + name
+                        + "<br><font size='2' color='gray'>" + symbol + "</font></div></html>");
             }
             return this;
         }
@@ -140,7 +146,7 @@ public class MarketOverviewPanel extends JPanel {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             setHorizontalAlignment(SwingConstants.CENTER);
             if (value instanceof BigDecimal price) {
-                setText(price.setScale(2, RoundingMode.HALF_UP).toPlainString());
+                setText(String.format("%,.2f", price));
             } else {
                 setText("–");
             }
