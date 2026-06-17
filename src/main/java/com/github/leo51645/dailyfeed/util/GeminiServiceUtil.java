@@ -1,5 +1,5 @@
 package com.github.leo51645.dailyfeed.util;
-import com.github.leo51645.dailyfeed.domain.dto.response.NewsResponseDto;
+import com.github.leo51645.dailyfeed.domain.dto.NewsResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;

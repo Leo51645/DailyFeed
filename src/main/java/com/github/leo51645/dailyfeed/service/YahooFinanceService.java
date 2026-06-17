@@ -1,6 +1,6 @@
 package com.github.leo51645.dailyfeed.service;
 
-import com.github.leo51645.dailyfeed.domain.dto.response.AssetResponseDto;
+import com.github.leo51645.dailyfeed.domain.dto.AssetResponseDto;
 import com.github.leo51645.dailyfeed.domain.enums.Assets;
 import com.github.leo51645.dailyfeed.util.YahooFinanceUtil;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.github.leo51645.dailyfeed.service;
 
-import com.github.leo51645.dailyfeed.domain.dto.response.NewsResponseDto;
+import com.github.leo51645.dailyfeed.domain.dto.NewsResponseDto;
 import com.github.leo51645.dailyfeed.domain.enums.News_Categories;
 import com.github.leo51645.dailyfeed.util.CurrentsNewsUtil;
 import com.github.leo51645.dailyfeed.util.GeminiServiceUtil;

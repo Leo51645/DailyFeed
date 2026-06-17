@@ -1,6 +1,6 @@
 package com.github.leo51645.dailyfeed.ui;
 
-import com.github.leo51645.dailyfeed.domain.dto.response.NewsResponseDto;
+import com.github.leo51645.dailyfeed.domain.dto.NewsResponseDto;
 
 import javax.swing.*;
 import java.awt.*;

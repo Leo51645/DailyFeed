@@ -1,6 +1,6 @@
 package com.github.leo51645.dailyfeed.ui;
 
-import com.github.leo51645.dailyfeed.domain.dto.response.AssetResponseDto;
+import com.github.leo51645.dailyfeed.domain.dto.AssetResponseDto;
 import com.github.leo51645.dailyfeed.domain.enums.Assets;
 
 import javax.swing.*;
@@ -8,7 +8,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;

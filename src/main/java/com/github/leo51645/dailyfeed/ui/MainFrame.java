@@ -1,7 +1,7 @@
 package com.github.leo51645.dailyfeed.ui;
 
-import com.github.leo51645.dailyfeed.domain.dto.response.AssetResponseDto;
-import com.github.leo51645.dailyfeed.domain.dto.response.NewsResponseDto;
+import com.github.leo51645.dailyfeed.domain.dto.AssetResponseDto;
+import com.github.leo51645.dailyfeed.domain.dto.NewsResponseDto;
 import com.github.leo51645.dailyfeed.domain.enums.Assets;
 import com.github.leo51645.dailyfeed.domain.enums.News_Categories;
 import com.github.leo51645.dailyfeed.service.GeminiService;

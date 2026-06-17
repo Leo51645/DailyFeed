@@ -1,4 +1,4 @@
-package com.github.leo51645.dailyfeed.domain.dto.response;
+package com.github.leo51645.dailyfeed.domain.dto;
 
 import lombok.Builder;
 import lombok.Data;
