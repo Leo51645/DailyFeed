@@ -42,12 +42,14 @@ public class CacheService {
     }
 
     public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> loadSingleCachedDay(LocalDate date) {
-        String news;
+        String newsCached;
         try {
-            news = Files.readString(cacheUtil.getCacheURI(date.toString()));
+            newsCached = Files.readString(cacheUtil.getCacheURI(date.toString()));
         } catch (IOException e) {
             throw new RuntimeException(e); // Todo: Error Handling
         }
+
+        String news = "[" + newsCached + "]";
         return geminiService.parseAIResponseToMap(news);
     }
 
