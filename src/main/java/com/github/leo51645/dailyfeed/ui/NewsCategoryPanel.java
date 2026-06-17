@@ -39,6 +39,7 @@ public class NewsCategoryPanel extends JPanel {
             JToggleButton button = new JToggleButton(category.getGermanTranslation());
             button.setFont(button.getFont().deriveFont(12f));
             button.setMargin(new Insets(3, 6, 3, 6));
+            button.setFocusPainted(false);
             button.addActionListener(e -> selectCategory(category));
 
             buttonGroup.add(button);
