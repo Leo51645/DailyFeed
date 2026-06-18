@@ -136,7 +136,7 @@ public class MainFrame extends JFrame {
     }
 
     private Map<News_Categories, List<NewsResponseDto>> fetchNews(LocalDate date) {
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> newsByDate = geminiService.getNewsOneDay(date);
+        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> newsByDate = geminiService.parseAIResponseToMap(geminiService.getNewsOneDay(date));
         return newsByDate.values().stream().findFirst().orElse(Map.of());
     }
 

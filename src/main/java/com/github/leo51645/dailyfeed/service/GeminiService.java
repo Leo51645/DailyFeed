@@ -265,14 +265,14 @@ public class GeminiService {
         return allNews;
     }
     // for caching
-    public Map<String, JSONObject> parseAiResponseToJsonObject(GenerateContentResponse aiResponse) {
+    public Map<String, JSONObject> parseAiResponseToJsonObject(String aiResponse) {
         Map<String, JSONObject> news = new HashMap<>();
 
-        if (aiResponse == null) {
+        if (aiResponse == null || aiResponse.isEmpty()) {
             return news;
         }
 
-        String responseString = aiResponse.text().trim();
+        String responseString = aiResponse.trim();
 
         if (responseString.startsWith("```")) {
             responseString = responseString.replaceAll("^```[a-zA-Z]*\\n?", "").replaceAll("```$", "").trim();
@@ -299,7 +299,7 @@ public class GeminiService {
         return news;
     }
 
-    public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> getNewsOneDay(LocalDate date) {
+    public String getNewsOneDay(LocalDate date) {
         log.info("Requesting Gemini ranking for single day {}", date);
         List<NewsResponseDto> newsSingleDay = currentsNewsService.getNewsOneDay(date);
         log.info("Sending {} articles to Gemini", newsSingleDay.size());
@@ -307,12 +307,11 @@ public class GeminiService {
         GenerateContentResponse aiResponse = getGeminiNewsResponseOneDay(newsSingleDay);
         log.info("Gemini response received, parsing...");
 
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponseToMap(aiResponse.text());
-        log.info("Parsed {} days from Gemini response", result.size());
-        return result;
+        log.info("Parsed 1 day from Gemini response");
+        return aiResponse.text();
     }
 
-    public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> getNewsTwoDays(LocalDate date) {
+    public String getNewsTwoDays(LocalDate date) {
         log.info("Requesting Gemini ranking for 3 days ending {}", date);
 
         CompletableFuture<List<NewsResponseDto>> day2Future = CompletableFuture.supplyAsync(() -> currentsNewsService.getNewsOneDay(date.minusDays(1)));
@@ -327,12 +326,11 @@ public class GeminiService {
         GenerateContentResponse aiResponse = getGeminiNewsResponseTwoDays(day2News, todayNews);
         log.info("Gemini response received, parsing...");
 
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponseToMap(aiResponse.text());
-        log.info("Parsed {} days from Gemini response", result.size());
-        return result;
+        log.info("Parsed 2 days from Gemini response");
+        return aiResponse.text();
     }
 
-    public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> getNewsAllDays(LocalDate date) {
+    public String getNewsAllDays(LocalDate date) {
         log.info("Requesting Gemini ranking for 3 days ending {}", date);
 
         CompletableFuture<List<NewsResponseDto>> day1Future = CompletableFuture.supplyAsync(() -> currentsNewsService.getNewsOneDay(date.minusDays(2)));
@@ -349,8 +347,7 @@ public class GeminiService {
         GenerateContentResponse aiResponse = getGeminiNewsResponseAllDays(day1News, day2News, todayNews);
         log.info("Gemini response received, parsing...");
 
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponseToMap(aiResponse.text());
-        log.info("Parsed {} days from Gemini response", result.size());
-        return result;
+        log.info("Parsed 3 days from Gemini response");
+        return aiResponse.text();
     }
 }
