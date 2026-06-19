@@ -8,10 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.DateFormatter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -30,6 +33,15 @@ public class CacheService {
             }
         } catch (IOException e) {
             throw new RuntimeException(e); // TODO: Exception Handling
+        }
+    }
+
+    public void saveLastFetch(LocalDateTime lastFetch) {
+        try {
+            Files.createDirectories(Paths.get("cache/"));
+            Files.writeString(Paths.get("cache/lastFetch.txt"), lastFetch.toString());
+        } catch (IOException e) {
+            throw new RuntimeException(e); // TODO: Exception handling
         }
     }
 
@@ -108,5 +120,21 @@ public class CacheService {
         }
 
         return cachedNews;
+    }
+
+    public LocalDateTime loadLastFetch() {
+        Path lastFetchPath = Paths.get("cache/lastFetch.txt");
+
+        String lastFetchString;
+        try {
+            lastFetchString = Files.readString(lastFetchPath);
+        } catch (IOException e) {
+            if (!Files.exists(lastFetchPath)) {
+                return null;
+            } else {
+                throw new RuntimeException(e); // TODO: Exception Handling
+            }
+        }
+        return LocalDateTime.parse(lastFetchString);
     }
 }

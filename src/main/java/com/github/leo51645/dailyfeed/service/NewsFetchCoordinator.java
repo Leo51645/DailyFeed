@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,22 +20,26 @@ public class NewsFetchCoordinator {
     private final CacheService cacheService;
     private final GeminiService geminiService;
 
-    private LocalDateTime lastFetch = null;
-
     private String getMissingNews(LocalDate today, Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> cachedMap) {
         String missingNews = "";
+
+        // if today and yesterday aren't cached, get all news
         if (!cachedMap.containsKey(today) && !cachedMap.containsKey(today.minusDays(1))) {
             missingNews =  geminiService.getNewsAllDays(today);
-            lastFetch = LocalDateTime.now();
+            cacheService.saveLastFetch(LocalDateTime.now());
+
+            // if only today is not cached get news from today and yesterday
         } else if (!cachedMap.containsKey(today)) {
             missingNews =  geminiService.getNewsTwoDays(today);
-            lastFetch = LocalDateTime.now();
-        } else if (cachedMap.containsKey(today)) {
-            if (lastFetch == null || lastFetch.plusMinutes(30).isBefore(LocalDateTime.now())) {
-                missingNews =  geminiService.getNewsOneDay(today);
-                lastFetch = LocalDateTime.now();
-            }
+            cacheService.saveLastFetch(LocalDateTime.now());
 
+            // if today is cached and the lastFetch is older than 30 min get news of today
+        } else if (cachedMap.containsKey(today)) {
+            LocalDateTime lastFetch = cacheService.loadLastFetch();
+            if (lastFetch == null || lastFetch.plusMinutes(30).isBefore(LocalDateTime.now())) {
+                missingNews = geminiService.getNewsOneDay(today);
+                cacheService.saveLastFetch(LocalDateTime.now());
+            }
         }
         return missingNews;
     }
