@@ -20,7 +20,6 @@ public class NewsFetchCoordinator {
     private final CacheService cacheService;
     private final GeminiService geminiService;
 
-    // gets cached news and missing entries and combines them into one HashMap for the frontend
     private String getMissingNews(LocalDate today, Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> cachedMap) {
         String missingNews = "";
         if (!cachedMap.containsKey(today) && !cachedMap.containsKey(today.minusDays(1))) {
@@ -33,9 +32,14 @@ public class NewsFetchCoordinator {
         return missingNews;
     }
 
+    // gets cached news and missing entries and combines them into one HashMap for the frontend
     public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> combineCachedMissingNews (LocalDate today) {
         Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> cachedNews = cacheService.loadAllCachedDays(today);
         String missingNewsAiResponse = getMissingNews(today, cachedNews);
+
+        if (missingNewsAiResponse == null || missingNewsAiResponse.isEmpty()) {
+            return cachedNews;
+        }
 
         Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> missingNews = geminiService.parseAIResponseToMap(missingNewsAiResponse);
 
