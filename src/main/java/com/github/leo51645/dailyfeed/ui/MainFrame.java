@@ -4,7 +4,7 @@ import com.github.leo51645.dailyfeed.domain.dto.AssetResponseDto;
 import com.github.leo51645.dailyfeed.domain.dto.NewsResponseDto;
 import com.github.leo51645.dailyfeed.domain.enums.Assets;
 import com.github.leo51645.dailyfeed.domain.enums.News_Categories;
-import com.github.leo51645.dailyfeed.service.GeminiService;
+import com.github.leo51645.dailyfeed.service.NewsFetchCoordinator;
 import com.github.leo51645.dailyfeed.service.YahooFinanceService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,6 +13,7 @@ import java.awt.*;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +28,7 @@ public class MainFrame extends JFrame {
     private static final DateTimeFormatter LOADED_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     private final YahooFinanceService yahooFinanceService;
-    private final GeminiService geminiService;
+    private final NewsFetchCoordinator newsFetchCoordinator;
 
     private final TopBarPanel topBarPanel;
     private final NewsCategoryPanel newsCategoryPanel;
@@ -35,10 +36,12 @@ public class MainFrame extends JFrame {
     private final MarketOverviewPanel marketOverviewPanel;
     private final JLabel loadedDateLabel = new JLabel("Noch keine Daten geladen.", SwingConstants.CENTER);
 
-    public MainFrame(YahooFinanceService yahooFinanceService, GeminiService geminiService) {
+    private Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> allNewsMap = new HashMap<>();
+
+    public MainFrame(YahooFinanceService yahooFinanceService, NewsFetchCoordinator newsFetchCoordinator) {
         super("DailyFeed");
         this.yahooFinanceService = yahooFinanceService;
-        this.geminiService = geminiService;
+        this.newsFetchCoordinator = newsFetchCoordinator;
 
         Image icon = loadIconImage();
         if (icon != null) {
@@ -101,7 +104,7 @@ public class MainFrame extends JFrame {
                 try {
                     LoadResult result = get();
                     newsCategoryPanel.setNews(result.news());
-                    marketOverviewPanel.setAssets(date, result.assets());
+                    marketOverviewPanel.setAssets(LocalDate.now(), result.assets());
                     loadedDateLabel.setForeground(Color.GRAY);
                     loadedDateLabel.setText("Angezeigte Daten vom: " + date.format(LOADED_DATE_FORMATTER));
                 } catch (Exception e) {
@@ -136,8 +139,11 @@ public class MainFrame extends JFrame {
     }
 
     private Map<News_Categories, List<NewsResponseDto>> fetchNews(LocalDate date) {
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> newsByDate = geminiService.parseAIResponseToMap(geminiService.getNewsOneDay(date));
-        return newsByDate.values().stream().findFirst().orElse(Map.of());
+        LocalDate today = LocalDate.now();
+        if (date.equals(today) || !allNewsMap.containsKey(date)) {
+            allNewsMap.putAll(newsFetchCoordinator.combineCachedMissingNews(today));
+        }
+        return allNewsMap.getOrDefault(date, Map.of());
     }
 
     private Image loadIconImage() {
