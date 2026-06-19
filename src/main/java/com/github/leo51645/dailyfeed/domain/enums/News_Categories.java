@@ -8,7 +8,7 @@ public enum News_Categories {
     SPORTS("sport", "Sport"),
     SOCIETY("society", "Gesellschaft"),
     ECONOMY("economy_business_finance", "Wirtschaft"),
-    TECHNOLOGY_SCIENCE("science_technology", "Wissenschaft & Technologie");
+    TECHNOLOGY_SCIENCE("science_technology", "Wissenschaft & Tech");
 
     private String categoryName;
     private String germanTranslation;

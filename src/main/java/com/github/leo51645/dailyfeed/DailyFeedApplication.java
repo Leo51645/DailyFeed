@@ -1,17 +1,14 @@
 package com.github.leo51645.dailyfeed;
 
-import com.github.leo51645.dailyfeed.domain.enums.News_Categories;
-import com.github.leo51645.dailyfeed.domain.dto.response.NewsResponseDto;
-import com.github.leo51645.dailyfeed.service.CurrentsNewsService;
 import com.github.leo51645.dailyfeed.service.GeminiService;
+import com.github.leo51645.dailyfeed.service.YahooFinanceService;
+import com.github.leo51645.dailyfeed.ui.MainFrame;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
+import javax.swing.SwingUtilities;
 
 @SpringBootApplication
 public class DailyFeedApplication {
@@ -29,8 +26,18 @@ public class DailyFeedApplication {
             System.setProperty("GEMINI_API_KEY", geminiApiKey);
         }
 
-        SpringApplication.run(DailyFeedApplication.class, args);
+        // Spring Boot defaults java.awt.headless to true for web apps - the Swing UI needs it disabled.
+        SpringApplication app = new SpringApplication(DailyFeedApplication.class);
+        app.setHeadless(false);
+        ApplicationContext context = app.run(args);
 
+        YahooFinanceService yahooFinanceService = context.getBean(YahooFinanceService.class);
+        GeminiService geminiService = context.getBean(GeminiService.class);
+
+        SwingUtilities.invokeLater(() -> {
+            MainFrame mainFrame = new MainFrame(yahooFinanceService, geminiService);
+            mainFrame.setVisible(true);
+        });
     }
 
 }

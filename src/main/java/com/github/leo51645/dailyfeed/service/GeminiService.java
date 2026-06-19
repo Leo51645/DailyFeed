@@ -1,6 +1,6 @@
 package com.github.leo51645.dailyfeed.service;
 
-import com.github.leo51645.dailyfeed.domain.dto.response.NewsResponseDto;
+import com.github.leo51645.dailyfeed.domain.dto.NewsResponseDto;
 import com.github.leo51645.dailyfeed.domain.enums.News_Categories;
 import com.github.leo51645.dailyfeed.util.CurrentsNewsUtil;
 import com.github.leo51645.dailyfeed.util.GeminiServiceUtil;
@@ -16,13 +16,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -94,6 +91,55 @@ public class GeminiService {
                 "Today:\n" + geminiServiceUtil.NewsListToJson(today)
                 , null);
     }
+    private GenerateContentResponse getGeminiNewsResponseTwoDays(List<NewsResponseDto> yesterday, List<NewsResponseDto> today) {
+        return client.models.generateContent("gemini-3.5-flash",
+                "You are a news ranking assistant. You will receive news articles from two different days, each containing multiple categories.\n" +
+                        "\n" +
+                        "Your task:\n" +
+                        "1. For each day and each category, select the 5 most important and relevant articles\n" +
+                        "2. Base your ranking on: relevance, significance of the event, and informational value\n" +
+                        "3. Remove duplicate articles (same story, different sources) — keep only the most informative version\n" +
+                        "4. Convert all publishedAt timestamps to exactly this format: \"yyyy-MM-dd HH:mm:ss +0000\" (example: \"2026-06-12 23:31:14 +0000\")\n" +
+                        "5. Return ONLY a valid JSON array, no markdown, no explanation, no code blocks\n" +
+                        "\n" +
+                        "The JSON must follow this exact structure:\n" +
+                        "[\n" +
+                        "  {\n" +
+                        "    \"date\": \"YYYY-MM-DD\",\n" +
+                        "    \"topNews\": [\n" +
+                        "      {\n" +
+                        "        \"category\": \"CATEGORY_NAME\",\n" +
+                        "        \"articles\": [\n" +
+                        "          {\n" +
+                        "            \"title\": \"...\",\n" +
+                        "            \"description\": \"...\",\n" +
+                        "            \"url\": \"...\",\n" +
+                        "            \"publishedAt\": \"...\"\n" +
+                        "          }\n" +
+                        "        ]\n" +
+                        "      }\n" +
+                        "    ]\n" +
+                        "  }\n" +
+                        "]\n" +
+                        "\n" +
+                        "Important rules:\n" +
+                        "- Return ONLY the JSON, nothing else! - This is very important!\n" +
+                        "- Every day must appear exactly once\n" +
+                        "- Every category must appear exactly once per day\n" +
+                        "- Each category must have exactly 5 articles\n" +
+                        "- Do not invent or modify articles — only use what is provided\n" +
+                        "- Convert the publishedAt timestamp exactly as mentioned\n" +
+                        "- If and ONLY if the category field is null at no other condition, you can choose the best fitting category out of these 5: " +
+                        "politics_government, sport, society, economy_business_finance, science_technology\n" +
+                        "- If fewer than 5 articles are available for a category, return only the articles that exist. Never pad or repeat entries to reach 5." +
+                        "\n" +
+                        "Here are the articles:\n" +
+                        "\n" +
+                        "Yesterday:\n" + geminiServiceUtil.NewsListToJson(yesterday) +
+                        "\n" +
+                        "Today:\n" + geminiServiceUtil.NewsListToJson(today)
+                , null);
+    }
     private GenerateContentResponse getGeminiNewsResponseOneDay(List<NewsResponseDto> newsOneDay) {
         return client.models.generateContent("gemini-3.5-flash",
                 "You are a news ranking assistant. You will receive news articles from one single day, each containing multiple categories.\n" +
@@ -141,7 +187,7 @@ public class GeminiService {
                 , null);
     }
 
-    private Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> parseAIResponse(GenerateContentResponse aiResponse) {
+    public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> parseAIResponseToMap(String aiResponse) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[ XX][ XXX]");
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -151,7 +197,7 @@ public class GeminiService {
             return allNews;
         }
 
-        String responseString = aiResponse.text().trim();
+        String responseString = aiResponse.trim();
 
         if (responseString.startsWith("```")) {
             responseString = responseString.replaceAll("^```[a-zA-Z]*\\n?", "").replaceAll("```$", "").trim();
@@ -218,8 +264,42 @@ public class GeminiService {
         }
         return allNews;
     }
+    // for caching
+    public Map<String, JSONObject> parseAiResponseToJsonObject(String aiResponse) {
+        Map<String, JSONObject> news = new HashMap<>();
 
-    public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> getNewsOneDay(LocalDate date) {
+        if (aiResponse == null || aiResponse.isEmpty()) {
+            return news;
+        }
+
+        String responseString = aiResponse.trim();
+
+        if (responseString.startsWith("```")) {
+            responseString = responseString.replaceAll("^```[a-zA-Z]*\\n?", "").replaceAll("```$", "").trim();
+        }
+
+        JSONArray root = null;
+        try {
+            root = new JSONArray(responseString);
+        } catch (JSONException e) {
+            e.printStackTrace(); // TODO: Error Handling -> wrong AI response pattern
+        }
+
+        if (root == null) {
+            return news;
+        }
+
+        // for each existing date
+        for (int i = 0; i < root.length(); i++) {
+            JSONObject day = root.getJSONObject(i);
+            String date = day.getString("date");
+
+            news.put(date, day);
+        }
+        return news;
+    }
+
+    public String getNewsOneDay(LocalDate date) {
         log.info("Requesting Gemini ranking for single day {}", date);
         List<NewsResponseDto> newsSingleDay = currentsNewsService.getNewsOneDay(date);
         log.info("Sending {} articles to Gemini", newsSingleDay.size());
@@ -227,12 +307,30 @@ public class GeminiService {
         GenerateContentResponse aiResponse = getGeminiNewsResponseOneDay(newsSingleDay);
         log.info("Gemini response received, parsing...");
 
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponse(aiResponse);
-        log.info("Parsed {} days from Gemini response", result.size());
-        return result;
+        log.info("Parsed 1 day from Gemini response");
+        return aiResponse.text();
     }
 
-    public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> getNewsAllDays(LocalDate date) {
+    public String getNewsTwoDays(LocalDate date) {
+        log.info("Requesting Gemini ranking for 3 days ending {}", date);
+
+        CompletableFuture<List<NewsResponseDto>> day2Future = CompletableFuture.supplyAsync(() -> currentsNewsService.getNewsOneDay(date.minusDays(1)));
+        CompletableFuture<List<NewsResponseDto>> todayFuture = CompletableFuture.supplyAsync(() -> currentsNewsService.getNewsOneDay(date));
+
+        CompletableFuture.allOf(day2Future, todayFuture).join();
+
+        List<NewsResponseDto> day2News = day2Future.join();
+        List<NewsResponseDto> todayNews = todayFuture.join();
+        log.info("Sending {} articles to Gemini", day2News.size() + todayNews.size());
+
+        GenerateContentResponse aiResponse = getGeminiNewsResponseTwoDays(day2News, todayNews);
+        log.info("Gemini response received, parsing...");
+
+        log.info("Parsed 2 days from Gemini response");
+        return aiResponse.text();
+    }
+
+    public String getNewsAllDays(LocalDate date) {
         log.info("Requesting Gemini ranking for 3 days ending {}", date);
 
         CompletableFuture<List<NewsResponseDto>> day1Future = CompletableFuture.supplyAsync(() -> currentsNewsService.getNewsOneDay(date.minusDays(2)));
@@ -249,8 +347,7 @@ public class GeminiService {
         GenerateContentResponse aiResponse = getGeminiNewsResponseAllDays(day1News, day2News, todayNews);
         log.info("Gemini response received, parsing...");
 
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> result = parseAIResponse(aiResponse);
-        log.info("Parsed {} days from Gemini response", result.size());
-        return result;
+        log.info("Parsed 3 days from Gemini response");
+        return aiResponse.text();
     }
 }

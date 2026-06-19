@@ -1,4 +1,4 @@
-package com.github.leo51645.dailyfeed.domain.dto.response;
+package com.github.leo51645.dailyfeed.domain.dto;
 
 import com.github.leo51645.dailyfeed.domain.enums.News_Categories;
 import lombok.Builder;
