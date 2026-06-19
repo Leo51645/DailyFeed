@@ -86,6 +86,34 @@ public class MainFrame extends JFrame {
         add(loadedDateLabel, BorderLayout.SOUTH);
     }
 
+    public void loadInitialData(SplashScreen splash) {
+        new SwingWorker<LoadResult, Void>() {
+            @Override
+            protected LoadResult doInBackground() {
+                LocalDate today = LocalDate.now();
+                Map<News_Categories, List<NewsResponseDto>> news = fetchNews(today);
+                Map<Assets, List<AssetResponseDto>> assets = yahooFinanceService.getAllAssets();
+                return new LoadResult(news, assets);
+            }
+
+            @Override
+            protected void done() {
+                splash.hideSplash();
+                setVisible(true);
+                try {
+                    LoadResult result = get();
+                    LocalDate today = LocalDate.now();
+                    newsCategoryPanel.setNews(result.news());
+                    marketOverviewPanel.setAssets(today, result.assets());
+                    loadedDateLabel.setForeground(Color.GRAY);
+                    loadedDateLabel.setText("Angezeigte Daten vom: " + today.format(LOADED_DATE_FORMATTER));
+                } catch (Exception e) {
+                    log.error("Failed to load initial data", e);
+                }
+            }
+        }.execute();
+    }
+
     private void loadData(LocalDate date) {
         topBarPanel.setLoading(true);
         articleDetailPanel.clear();

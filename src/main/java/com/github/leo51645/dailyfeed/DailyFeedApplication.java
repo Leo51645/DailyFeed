@@ -3,6 +3,7 @@ package com.github.leo51645.dailyfeed;
 import com.github.leo51645.dailyfeed.service.NewsFetchCoordinator;
 import com.github.leo51645.dailyfeed.service.YahooFinanceService;
 import com.github.leo51645.dailyfeed.ui.MainFrame;
+import com.github.leo51645.dailyfeed.ui.SplashScreen;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -35,8 +36,11 @@ public class DailyFeedApplication {
         NewsFetchCoordinator newsFetchCoordinator = context.getBean(NewsFetchCoordinator.class);
 
         SwingUtilities.invokeLater(() -> {
+            SplashScreen splash = new SplashScreen();
+            splash.showSplash();
+
             MainFrame mainFrame = new MainFrame(yahooFinanceService, newsFetchCoordinator);
-            mainFrame.setVisible(true);
+            mainFrame.loadInitialData(splash);
         });
     }
 
