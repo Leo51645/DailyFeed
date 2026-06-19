@@ -9,6 +9,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -18,9 +19,12 @@ import java.util.Map;
  */
 public class MarketOverviewPanel extends JPanel {
 
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
     private final DefaultTableModel tableModel;
     private final JTable table;
     private final JButton refreshButton;
+    private final JLabel subtitle;
 
     public MarketOverviewPanel(Runnable onRefresh) {
         super(new BorderLayout());
@@ -30,7 +34,7 @@ public class MarketOverviewPanel extends JPanel {
         JLabel header = new JLabel("Marktübersicht");
         header.setFont(header.getFont().deriveFont(Font.BOLD, 14f));
 
-        JLabel subtitle = new JLabel("Marktdaten immer von heute");
+        subtitle = new JLabel("Marktdaten von heute");
         subtitle.setFont(subtitle.getFont().deriveFont(10f));
         subtitle.setForeground(Color.GRAY);
 
@@ -77,6 +81,7 @@ public class MarketOverviewPanel extends JPanel {
      */
     public void setAssets(LocalDate date, Map<Assets, List<AssetResponseDto>> assetsByType) {
         tableModel.setRowCount(0);
+        subtitle.setText("Marktdaten vom " + date.format(DATE_FORMATTER));
         if (assetsByType == null) {
             return;
         }

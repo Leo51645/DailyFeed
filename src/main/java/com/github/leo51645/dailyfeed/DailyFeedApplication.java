@@ -1,8 +1,9 @@
 package com.github.leo51645.dailyfeed;
 
-import com.github.leo51645.dailyfeed.service.GeminiService;
+import com.github.leo51645.dailyfeed.service.NewsFetchCoordinator;
 import com.github.leo51645.dailyfeed.service.YahooFinanceService;
 import com.github.leo51645.dailyfeed.ui.MainFrame;
+import com.github.leo51645.dailyfeed.ui.SplashScreen;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -32,11 +33,14 @@ public class DailyFeedApplication {
         ApplicationContext context = app.run(args);
 
         YahooFinanceService yahooFinanceService = context.getBean(YahooFinanceService.class);
-        GeminiService geminiService = context.getBean(GeminiService.class);
+        NewsFetchCoordinator newsFetchCoordinator = context.getBean(NewsFetchCoordinator.class);
 
         SwingUtilities.invokeLater(() -> {
-            MainFrame mainFrame = new MainFrame(yahooFinanceService, geminiService);
-            mainFrame.setVisible(true);
+            SplashScreen splash = new SplashScreen();
+            splash.showSplash();
+
+            MainFrame mainFrame = new MainFrame(yahooFinanceService, newsFetchCoordinator);
+            mainFrame.loadInitialData(splash);
         });
     }
 

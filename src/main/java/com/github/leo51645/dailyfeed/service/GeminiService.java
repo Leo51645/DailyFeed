@@ -329,25 +329,4 @@ public class GeminiService {
         log.info("Parsed 2 days from Gemini response");
         return aiResponse.text();
     }
-
-    public String getNewsAllDays(LocalDate date) {
-        log.info("Requesting Gemini ranking for 3 days ending {}", date);
-
-        CompletableFuture<List<NewsResponseDto>> day1Future = CompletableFuture.supplyAsync(() -> currentsNewsService.getNewsOneDay(date.minusDays(2)));
-        CompletableFuture<List<NewsResponseDto>> day2Future = CompletableFuture.supplyAsync(() -> currentsNewsService.getNewsOneDay(date.minusDays(1)));
-        CompletableFuture<List<NewsResponseDto>> todayFuture = CompletableFuture.supplyAsync(() -> currentsNewsService.getNewsOneDay(date));
-
-        CompletableFuture.allOf(day1Future, day2Future, todayFuture).join();
-
-        List<NewsResponseDto> day1News = day1Future.join();
-        List<NewsResponseDto> day2News = day2Future.join();
-        List<NewsResponseDto> todayNews = todayFuture.join();
-        log.info("Sending {} articles to Gemini", day1News.size() + day2News.size() + todayNews.size());
-
-        GenerateContentResponse aiResponse = getGeminiNewsResponseAllDays(day1News, day2News, todayNews);
-        log.info("Gemini response received, parsing...");
-
-        log.info("Parsed 3 days from Gemini response");
-        return aiResponse.text();
-    }
 }
