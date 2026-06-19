@@ -3,6 +3,7 @@ package com.github.leo51645.dailyfeed.service;
 import com.github.leo51645.dailyfeed.domain.dto.AssetResponseDto;
 import com.github.leo51645.dailyfeed.domain.enums.Assets;
 import com.github.leo51645.dailyfeed.util.YahooFinanceUtil;
+import com.google.api.client.json.Json;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -76,6 +77,10 @@ public class YahooFinanceService {
                     .atZone(ZoneId.of(exchangeTimezone))
                     .toLocalDate();
 
+            if (close.get(i) == JSONObject.NULL || close.get(i - 1) == JSONObject.NULL) {
+                continue;
+            }
+
             BigDecimal currentPrice = BigDecimal.valueOf(close.getDouble(i));
             BigDecimal previousClosePrice = BigDecimal.valueOf(close.getDouble(i - 1));
 
@@ -116,7 +121,14 @@ public class YahooFinanceService {
                 .toLocalDate();
 
         BigDecimal currentPrice  = BigDecimal.valueOf(meta.getDouble("regularMarketPrice"));
-        BigDecimal previousClose = BigDecimal.valueOf(close.getDouble(lastIndex - 1));
+
+        BigDecimal previousClose = null;
+        for (int i = 1; i <= 4; i++) {
+            if (close.get(lastIndex - i) != JSONObject.NULL) {
+                previousClose = BigDecimal.valueOf(close.getDouble(lastIndex - i));
+                break;
+            }
+        }
 
         // market open?
         // if the current time lies between the start time and the close time the market is open
@@ -125,7 +137,7 @@ public class YahooFinanceService {
         long end = meta.getJSONObject("currentTradingPeriod").getJSONObject("regular").getLong("end");
         boolean marketOpen = now >= start && now <= end;
 
-        BigDecimal changePercent =  yahooFinanceUtil.percentageDifference(currentPrice, previousClose);
+        BigDecimal changePercent = yahooFinanceUtil.percentageDifference(currentPrice, previousClose);
 
         AssetResponseDto dto = AssetResponseDto.builder()
                 .name(name)
