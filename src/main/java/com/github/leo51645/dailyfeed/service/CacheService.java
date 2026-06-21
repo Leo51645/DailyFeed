@@ -110,7 +110,11 @@ public class CacheService {
         for (Map.Entry<LocalDate, Map<News_Categories, List<NewsResponseDto>>> entry : cachedNews.entrySet()) {
             LocalDate keyDate = entry.getKey();
             if (keyDate.isBefore(today.minusDays(2))) {
-                delete(keyDate);
+                try {
+                    delete(keyDate);
+                } catch (RuntimeException e) {
+                    log.warn("Could not delete old cache file for {}, skipping", keyDate, e);
+                }
                 oldCacheFiles.add(keyDate);
             }
         }
