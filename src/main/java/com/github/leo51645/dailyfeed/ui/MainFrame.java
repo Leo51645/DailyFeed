@@ -110,6 +110,10 @@ public class MainFrame extends JFrame {
                     loadedDateLabel.setText("Angezeigte Daten vom: " + today.format(LOADED_DATE_FORMATTER));
                 } catch (Exception e) {
                     log.error("Failed to load initial data", e);
+                    String cause = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
+                    JOptionPane.showMessageDialog(MainFrame.this,
+                            "Daten konnten nicht geladen werden:\n" + cause,
+                            "Fehler", JOptionPane.ERROR_MESSAGE);
                 }
             }
         }.execute();
@@ -139,8 +143,9 @@ public class MainFrame extends JFrame {
                 } catch (Exception e) {
                     log.error("Failed to load data for {}", date, e);
                     topBarPanel.setError("Fehler beim Laden der Daten.");
+                    String cause = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
                     JOptionPane.showMessageDialog(MainFrame.this,
-                            "Daten konnten nicht geladen werden:\n" + e.getCause(),
+                            "Daten konnten nicht geladen werden:\n" + cause,
                             "Fehler", JOptionPane.ERROR_MESSAGE);
                 }
             }
