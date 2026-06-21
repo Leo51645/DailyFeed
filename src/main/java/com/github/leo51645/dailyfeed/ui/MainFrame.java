@@ -167,7 +167,7 @@ public class MainFrame extends JFrame {
         }.execute();
     }
 
-    private Map<News_Categories, List<NewsResponseDto>> fetchNews(LocalDate date) {
+    private synchronized Map<News_Categories, List<NewsResponseDto>> fetchNews(LocalDate date) {
         LocalDate today = LocalDate.now();
         if (date.equals(today) || !allNewsMap.containsKey(date)) {
             allNewsMap.putAll(newsFetchCoordinator.combineCachedMissingNews(today));
