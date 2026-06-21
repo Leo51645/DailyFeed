@@ -102,8 +102,8 @@ public class CacheService {
             return new HashMap<>();
         }
 
-        String cominedFiles = String.join(",", existingCachedDays);
-        String response = "[" + cominedFiles + "]";
+        String combinedFiles = String.join(",", existingCachedDays);
+        String response = "[" + combinedFiles + "]";
 
         Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> cachedNews = geminiService.parseAIResponseToMap(response);
 

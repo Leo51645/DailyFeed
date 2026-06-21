@@ -13,7 +13,6 @@ import java.awt.*;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -88,10 +87,10 @@ public class MainFrame extends JFrame {
     }
 
     public void loadInitialData(SplashScreen splash) {
+        LocalDate today = LocalDate.now();
         new SwingWorker<LoadResult, Void>() {
             @Override
             protected LoadResult doInBackground() {
-                LocalDate today = LocalDate.now();
                 Map<News_Categories, List<NewsResponseDto>> news = fetchNews(today);
                 Map<Assets, List<AssetResponseDto>> assets = yahooFinanceService.getAllAssets();
                 return new LoadResult(news, assets);
@@ -103,7 +102,6 @@ public class MainFrame extends JFrame {
                 setVisible(true);
                 try {
                     LoadResult result = get();
-                    LocalDate today = LocalDate.now();
                     newsCategoryPanel.setNews(result.news());
                     marketOverviewPanel.setAssets(today, result.assets());
                     loadedDateLabel.setForeground(Color.GRAY);
