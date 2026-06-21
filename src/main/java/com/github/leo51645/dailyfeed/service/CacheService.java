@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.DateFormatter;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -65,35 +65,52 @@ public class CacheService {
         return geminiService.parseAIResponseToMap(news);
     }
 
+    @PostConstruct
+    public void deleteOldCacheFiles() {
+        LocalDate today = LocalDate.now();
+        Path cacheDir = Paths.get("cache/");
+        if (!Files.exists(cacheDir)) {
+            return;
+        }
+        try {
+            Files.list(cacheDir)
+                    .filter(path -> path.getFileName().toString().matches("day_\\d{4}-\\d{2}-\\d{2}\\.json"))
+                    .forEach(path -> {
+                        try {
+                            LocalDate fileDate = LocalDate.parse(path.getFileName().toString().replace("day_", "").replace(".json", ""));
+                            if (fileDate.isBefore(today.minusDays(2))) {
+                                Files.delete(path);
+                                log.info("Deleted old cache file: {}", path.getFileName());
+                            }
+                        } catch (Exception e) {
+                            log.warn("Could not delete old cache file {}, skipping", path.getFileName(), e);
+                        }
+                    });
+        } catch (IOException e) {
+            log.warn("Could not list cache directory for cleanup", e);
+        }
+    }
+
     public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> loadAllCachedDays(LocalDate today) {
-        String day1CachedString;
-        String day2CachedString;
-        String todayCachedString;
-
         List<String> existingCachedDays = new ArrayList<>();
-
-        List<LocalDate> oldCacheFiles =  new ArrayList<>();
 
         if (Files.exists(cacheUtil.getCacheURI(today.minusDays(2).toString()))) {
             try {
-                day1CachedString = Files.readString(cacheUtil.getCacheURI(today.minusDays(2).toString()));
-                existingCachedDays.add(day1CachedString);
+                existingCachedDays.add(Files.readString(cacheUtil.getCacheURI(today.minusDays(2).toString())));
             } catch (IOException e) {
                 throw new RuntimeException(e); // Todo: Exception Handling
             }
         }
         if (Files.exists(cacheUtil.getCacheURI(today.minusDays(1).toString()))) {
             try {
-                day2CachedString = Files.readString(cacheUtil.getCacheURI(today.minusDays(1).toString()));
-                existingCachedDays.add(day2CachedString);
+                existingCachedDays.add(Files.readString(cacheUtil.getCacheURI(today.minusDays(1).toString())));
             } catch (IOException e) {
                 throw new RuntimeException(e); // Todo: Exception Handling
             }
         }
         if (Files.exists(cacheUtil.getCacheURI(today.toString()))) {
             try {
-                todayCachedString = Files.readString(cacheUtil.getCacheURI(today.toString()));
-                existingCachedDays.add(todayCachedString);
+                existingCachedDays.add(Files.readString(cacheUtil.getCacheURI(today.toString())));
             } catch (IOException e) {
                 throw new RuntimeException(e); // Todo: Exception Handling
             }
@@ -105,25 +122,7 @@ public class CacheService {
         String combinedFiles = String.join(",", existingCachedDays);
         String response = "[" + combinedFiles + "]";
 
-        Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> cachedNews = geminiService.parseAIResponseToMap(response);
-
-        for (Map.Entry<LocalDate, Map<News_Categories, List<NewsResponseDto>>> entry : cachedNews.entrySet()) {
-            LocalDate keyDate = entry.getKey();
-            if (keyDate.isBefore(today.minusDays(2))) {
-                try {
-                    delete(keyDate);
-                } catch (RuntimeException e) {
-                    log.warn("Could not delete old cache file for {}, skipping", keyDate, e);
-                }
-                oldCacheFiles.add(keyDate);
-            }
-        }
-
-        for (LocalDate keyDate : oldCacheFiles) {
-            cachedNews.remove(keyDate);
-        }
-
-        return cachedNews;
+        return geminiService.parseAIResponseToMap(response);
     }
 
     public LocalDateTime loadLastFetch() {
