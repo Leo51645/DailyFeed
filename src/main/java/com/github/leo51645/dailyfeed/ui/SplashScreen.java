@@ -28,10 +28,9 @@ public class SplashScreen extends JWindow {
 
         progressBar = new JProgressBar();
         progressBar.setIndeterminate(true);
-        progressBar.setPreferredSize(new Dimension(0, 3));
-        progressBar.setBorderPainted(false);
+        progressBar.setBorder(BorderFactory.createEmptyBorder(0, 40, 40, 40));
         progressBar.setBackground(new Color(50, 50, 50));
-        progressBar.setForeground(new Color(90, 150, 255));
+        progressBar.setForeground(new Color(100, 160, 255));
 
         JPanel textPanel = new JPanel(new BorderLayout());
         textPanel.setBackground(new Color(30, 30, 30));
