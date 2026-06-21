@@ -6,7 +6,6 @@ import java.awt.*;
 public class SplashScreen extends JWindow {
 
     private final JProgressBar progressBar;
-    private final Timer animationTimer;
 
     public SplashScreen() {
         setSize(400, 220);
@@ -28,9 +27,16 @@ public class SplashScreen extends JWindow {
 
         progressBar = new JProgressBar();
         progressBar.setIndeterminate(true);
-        progressBar.setBorder(BorderFactory.createEmptyBorder(0, 40, 40, 40));
+
         progressBar.setBackground(new Color(50, 50, 50));
         progressBar.setForeground(new Color(100, 160, 255));
+
+        progressBar.setPreferredSize(new Dimension(320, 18));
+
+        JPanel progressPanel = new JPanel();
+        progressPanel.setBackground(new Color(30, 30, 30));
+        progressPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
+        progressPanel.add(progressBar);
 
         JPanel textPanel = new JPanel(new BorderLayout());
         textPanel.setBackground(new Color(30, 30, 30));
@@ -38,20 +44,16 @@ public class SplashScreen extends JWindow {
         textPanel.add(subtitle, BorderLayout.CENTER);
 
         content.add(textPanel, BorderLayout.CENTER);
-        content.add(progressBar, BorderLayout.SOUTH);
+        content.add(progressPanel, BorderLayout.SOUTH);
 
         setContentPane(content);
-
-        animationTimer = new Timer(16, e -> progressBar.repaint());
     }
 
     public void showSplash() {
-        animationTimer.start();
         setVisible(true);
     }
 
     public void hideSplash() {
-        animationTimer.stop();
         setVisible(false);
         dispose();
     }
