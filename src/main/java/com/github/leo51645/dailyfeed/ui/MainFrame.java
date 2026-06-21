@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Main application window. Wires together the four regions described in CLAUDE.md:
@@ -36,7 +37,7 @@ public class MainFrame extends JFrame {
     private final MarketOverviewPanel marketOverviewPanel;
     private final JLabel loadedDateLabel = new JLabel("Noch keine Daten geladen.", SwingConstants.CENTER);
 
-    private Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> allNewsMap = new HashMap<>();
+    private ConcurrentHashMap<LocalDate, Map<News_Categories, List<NewsResponseDto>>> allNewsMap = new ConcurrentHashMap<>();
 
     public MainFrame(YahooFinanceService yahooFinanceService, NewsFetchCoordinator newsFetchCoordinator) {
         super("DailyFeed");
