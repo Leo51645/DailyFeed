@@ -180,7 +180,7 @@ public class MainFrame extends JFrame {
     }
 
     private Image loadIconImage() {
-        URL url = getClass().getResource("/images/dailyFeedLogo.png");
+        URL url = getClass().getResource("/images/dailyFeedIcon.png");
         return url != null ? new ImageIcon(url).getImage() : null;
     }
 
