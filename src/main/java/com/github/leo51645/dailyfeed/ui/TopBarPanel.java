@@ -31,7 +31,7 @@ public class TopBarPanel extends JPanel {
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         leftPanel.setOpaque(false);
 
-        JLabel logoLabel = new JLabel(loadScaledIcon("/images/dailyFeedLogo.png", 28, 28));
+        JLabel logoLabel = new JLabel(loadScaledIcon("/images/dailyFeedIcon.png", 28, 28));
         leftPanel.add(logoLabel);
 
         JLabel titleLabel = new JLabel("DailyFeed");

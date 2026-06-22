@@ -333,6 +333,6 @@ public class GeminiService {
     public void testApiKey(String apiKeyGemini) throws Exception{
         Client testClient = Client.builder().apiKey(apiKeyGemini).build();
 
-        testClient.models.generateContent("gemini-2.5-flash", "This is a test so just answer with ok.", null);
+        testClient.models.generateContent("gemini-3.1-flash-lite", "This is a test so just answer with ok.", null);
     }
 }

@@ -18,7 +18,12 @@ public class ArticleDetailPanel extends JPanel {
     private static final DateTimeFormatter PUBLISHED_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
     private final CardLayout cardLayout = new CardLayout();
-    private final JTextArea titleLabel = new JTextArea();
+    private final JTextArea titleLabel = new JTextArea() {
+        @Override
+        public Dimension getMaximumSize() {
+            return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+        }
+    };
     private final JLabel metaLabel = new JLabel();
     private final JTextArea descriptionArea = new JTextArea();
     private final JButton openLinkButton = new JButton("Artikel öffnen");
@@ -55,10 +60,6 @@ public class ArticleDetailPanel extends JPanel {
         titleLabel.setFocusable(false);
 
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        titleLabel.setMaximumSize(
-                new Dimension(Integer.MAX_VALUE,
-                        titleLabel.getPreferredSize().height)
-        );
 
         metaLabel.setForeground(Color.GRAY);
         metaLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
