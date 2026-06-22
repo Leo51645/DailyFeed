@@ -49,17 +49,19 @@ public class CurrentsNewsService {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                log.error("Currents API error {} for category {} on page {} with http url {}", response.statusCode(), news_category, pageNumber, uri);
-                System.out.println(response.body());
-                throw new RuntimeException("Failed : HTTP error code : " + response.statusCode()); // Todo: Exception Handling
+                log.error("Currents API returned HTTP {} for category {} page {}", response.statusCode(), news_category, pageNumber);
+                throw new RuntimeException("Currents API error " + response.statusCode() + " for category " + news_category);
             }
 
             log.debug("Currents API response received for category {} page {}", news_category, pageNumber);
             return response;
         } catch (IOException e) {
-            throw new RuntimeException(e); //Todo: Exception Handling
+            log.error("Network error fetching news for category {}: {}", news_category, e.getMessage());
+            throw new RuntimeException("Network error fetching news for " + news_category + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            log.error("Request interrupted for category {}", news_category);
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Request interrupted for category " + news_category, e);
         }
     }
 

@@ -5,6 +5,7 @@ import com.github.leo51645.dailyfeed.domain.enums.Assets;
 import com.github.leo51645.dailyfeed.util.YahooFinanceUtil;
 import com.google.api.client.json.Json;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class YahooFinanceService {
@@ -43,18 +45,23 @@ public class YahooFinanceService {
                 .build();
 
         try {
+            log.debug("Fetching data for asset: {}", asset.name());
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                throw new RuntimeException("Failed : HTTP error code : " + response.statusCode()); // Todo: Exception Handling
+                log.error("Yahoo Finance API returned HTTP {} for asset {}", response.statusCode(), asset.name());
+                throw new RuntimeException("Yahoo Finance API error " + response.statusCode() + " for " + asset.getDisplayName());
             }
 
             return response;
 
         } catch (IOException e) {
-            throw new RuntimeException(e); // Todo: Error response schreiben etc.
+            log.error("Network error fetching asset {}: {}", asset.name(), e.getMessage());
+            throw new RuntimeException("Network error fetching " + asset.getDisplayName() + ": " + e.getMessage(), e);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            log.error("Request interrupted for asset {}", asset.name());
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Request interrupted for " + asset.getDisplayName(), e);
         }
     }
 
@@ -168,7 +175,7 @@ public class YahooFinanceService {
                 JSONObject root = new JSONObject(httpResponse.body());
                 roots.put(asset, root);
             } catch (RuntimeException e) {
-                System.err.println("Failed to fetch data for " + asset.name() + ": " + e.getMessage());
+                log.error("Failed to fetch data for asset {}: {}", asset.name(), e.getMessage());
             }
         }
 
@@ -186,6 +193,7 @@ public class YahooFinanceService {
                 assets.add(lastTradingDayAsset);
             }
         }
+        log.info("Fetched market data for {}/{} assets", historicalAssets.size(), Assets.values().length);
         return historicalAssets;
     }
 
