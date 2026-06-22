@@ -29,10 +29,13 @@ public class CacheService {
         try {
             Files.createDirectories(Paths.get("cache/"));
             for (Map.Entry<String, JSONObject> entry : aiResponse.entrySet()) {
-                Files.writeString(Paths.get(cacheUtil.getCacheURI(entry.getKey()).toUri()), entry.getValue().toString());
+                Path path = cacheUtil.getCacheURI(entry.getKey());
+                Files.writeString(path, entry.getValue().toString());
+                log.info("Saved cache file: {}", path.getFileName());
             }
         } catch (IOException e) {
-            throw new RuntimeException(e); // TODO: Exception Handling
+            log.error("Failed to write cache files", e);
+            throw new RuntimeException("Cache write failed: " + e.getMessage(), e);
         }
     }
 
@@ -40,8 +43,9 @@ public class CacheService {
         try {
             Files.createDirectories(Paths.get("cache/"));
             Files.writeString(Paths.get("cache/lastFetch.txt"), lastFetch.toString());
+            log.debug("Last fetch timestamp saved: {}", lastFetch);
         } catch (IOException e) {
-            throw new RuntimeException(e); // TODO: Exception handling
+            log.warn("Failed to save last fetch timestamp — refresh interval tracking may be inaccurate", e);
         }
     }
 
@@ -49,20 +53,20 @@ public class CacheService {
         try {
             Files.delete(cacheUtil.getCacheURI(date.toString()));
         } catch (IOException e) {
-            throw new RuntimeException(e); // TODO: Error handling
+            throw new RuntimeException(e);
         }
     }
 
     public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> loadSingleCachedDay(LocalDate date) {
-        String newsCached;
+        Path path = cacheUtil.getCacheURI(date.toString());
         try {
-            newsCached = Files.readString(cacheUtil.getCacheURI(date.toString()));
+            String newsCached = Files.readString(path);
+            log.info("Loaded cache for date: {}", date);
+            return geminiService.parseAIResponseToMap("[" + newsCached + "]");
         } catch (IOException e) {
-            throw new RuntimeException(e); // Todo: Error Handling
+            log.error("Failed to read cache file for date {}", date, e);
+            throw new RuntimeException("Cache read failed for date " + date + ": " + e.getMessage(), e);
         }
-
-        String news = "[" + newsCached + "]";
-        return geminiService.parseAIResponseToMap(news);
     }
 
     @PostConstruct
@@ -94,50 +98,42 @@ public class CacheService {
     public Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> loadAllCachedDays(LocalDate today) {
         List<String> existingCachedDays = new ArrayList<>();
 
-        if (Files.exists(cacheUtil.getCacheURI(today.minusDays(2).toString()))) {
-            try {
-                existingCachedDays.add(Files.readString(cacheUtil.getCacheURI(today.minusDays(2).toString())));
-            } catch (IOException e) {
-                throw new RuntimeException(e); // Todo: Exception Handling
+        for (int i = 2; i >= 0; i--) {
+            LocalDate date = today.minusDays(i);
+            Path path = cacheUtil.getCacheURI(date.toString());
+            if (Files.exists(path)) {
+                try {
+                    existingCachedDays.add(Files.readString(path));
+                    log.debug("Loaded cache for {}", date);
+                } catch (IOException e) {
+                    log.warn("Failed to read cache for {} — skipping this day", date, e);
+                }
             }
         }
-        if (Files.exists(cacheUtil.getCacheURI(today.minusDays(1).toString()))) {
-            try {
-                existingCachedDays.add(Files.readString(cacheUtil.getCacheURI(today.minusDays(1).toString())));
-            } catch (IOException e) {
-                throw new RuntimeException(e); // Todo: Exception Handling
-            }
-        }
-        if (Files.exists(cacheUtil.getCacheURI(today.toString()))) {
-            try {
-                existingCachedDays.add(Files.readString(cacheUtil.getCacheURI(today.toString())));
-            } catch (IOException e) {
-                throw new RuntimeException(e); // Todo: Exception Handling
-            }
-        }
+
         if (existingCachedDays.isEmpty()) {
             return new HashMap<>();
         }
 
-        String combinedFiles = String.join(",", existingCachedDays);
-        String response = "[" + combinedFiles + "]";
-
+        String response = "[" + String.join(",", existingCachedDays) + "]";
         return geminiService.parseAIResponseToMap(response);
     }
 
     public LocalDateTime loadLastFetch() {
         Path lastFetchPath = Paths.get("cache/lastFetch.txt");
 
-        String lastFetchString;
-        try {
-            lastFetchString = Files.readString(lastFetchPath);
-        } catch (IOException e) {
-            if (!Files.exists(lastFetchPath)) {
-                return null;
-            } else {
-                throw new RuntimeException(e); // TODO: Exception Handling
-            }
+        if (!Files.exists(lastFetchPath)) {
+            log.debug("No lastFetch.txt found — treating as first run");
+            return null;
         }
-        return LocalDateTime.parse(lastFetchString);
+
+        try {
+            LocalDateTime lastFetch = LocalDateTime.parse(Files.readString(lastFetchPath));
+            log.debug("Last fetch loaded: {}", lastFetch);
+            return lastFetch;
+        } catch (IOException e) {
+            log.warn("Failed to read lastFetch.txt — treating as first run", e);
+            return null;
+        }
     }
 }

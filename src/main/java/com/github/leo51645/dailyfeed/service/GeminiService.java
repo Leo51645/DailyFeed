@@ -329,4 +329,10 @@ public class GeminiService {
         log.info("Parsed 2 days from Gemini response");
         return aiResponse.text();
     }
+
+    public void testApiKey(String apiKeyGemini) throws Exception{
+        Client testClient = Client.builder().apiKey(apiKeyGemini).build();
+
+        testClient.models.generateContent("gemini-2.5-flash", "This is a test so just answer with ok.", null);
+    }
 }

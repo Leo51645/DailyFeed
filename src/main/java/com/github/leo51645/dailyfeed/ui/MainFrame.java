@@ -38,7 +38,8 @@ public class MainFrame extends JFrame {
 
     private ConcurrentHashMap<LocalDate, Map<News_Categories, List<NewsResponseDto>>> allNewsMap = new ConcurrentHashMap<>();
 
-    public MainFrame(YahooFinanceService yahooFinanceService, NewsFetchCoordinator newsFetchCoordinator) {
+    public MainFrame(YahooFinanceService yahooFinanceService, NewsFetchCoordinator newsFetchCoordinator,
+                     Runnable onEditApiKeys) {
         super("DailyFeed");
         this.yahooFinanceService = yahooFinanceService;
         this.newsFetchCoordinator = newsFetchCoordinator;
@@ -53,7 +54,7 @@ public class MainFrame extends JFrame {
         setMinimumSize(new Dimension(960, 600));
         setLocationRelativeTo(null);
 
-        topBarPanel = new TopBarPanel(this::loadData);
+        topBarPanel = new TopBarPanel(this::loadData, onEditApiKeys);
         newsCategoryPanel = new NewsCategoryPanel();
         articleDetailPanel = new ArticleDetailPanel();
         marketOverviewPanel = new MarketOverviewPanel(this::refreshMarket);
