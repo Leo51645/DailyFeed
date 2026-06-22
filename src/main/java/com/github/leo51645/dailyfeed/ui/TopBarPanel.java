@@ -74,6 +74,10 @@ public class TopBarPanel extends JPanel {
         editKeysButton.addActionListener(e -> onEditApiKeys.run());
         rightPanel.add(editKeysButton);
 
+        JButton logButton = new JButton("Log öffnen");
+        logButton.addActionListener(e -> openLogFile());
+        rightPanel.add(logButton);
+
         add(leftPanel, BorderLayout.WEST);
         add(rightPanel, BorderLayout.EAST);
     }
@@ -89,6 +93,21 @@ public class TopBarPanel extends JPanel {
     public void setError(String message) {
         statusLabel.setForeground(new Color(200, 0, 0));
         statusLabel.setText(message);
+    }
+
+    private static void openLogFile() {
+        java.io.File logFile = new java.io.File("cache/dailyfeed.log");
+        if (!logFile.exists()) {
+            JOptionPane.showMessageDialog(null, "Log-Datei nicht gefunden.\nSie wird beim ersten App-Start erstellt.",
+                    "Log nicht vorhanden", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        try {
+            java.awt.Desktop.getDesktop().open(logFile);
+        } catch (java.io.IOException ex) {
+            JOptionPane.showMessageDialog(null, "Log-Datei konnte nicht geöffnet werden:\n" + ex.getMessage(),
+                    "Fehler", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private static ImageIcon loadScaledIcon(String resourcePath, int width, int height) {
