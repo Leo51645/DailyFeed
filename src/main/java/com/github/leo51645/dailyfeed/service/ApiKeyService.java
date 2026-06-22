@@ -48,4 +48,23 @@ public class ApiKeyService {
         return currentsApiKeyIsValid;
     }
 
+    public boolean ApiKeysAreConfigured() {
+        Path envPath = Path.of(".env");
+
+        if (!Files.exists(envPath)) {
+            return false;
+        }
+
+        String envFile;
+        try {
+            envFile = Files.readString(envPath);
+            if (envFile.contains("GEMINI_API_KEY=") && envFile.contains("CURRENTS_API_KEY=")) {
+                return true;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e); // exception handling
+        }
+        return false;
+    }
+
 }
