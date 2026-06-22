@@ -18,7 +18,7 @@ public class ArticleDetailPanel extends JPanel {
     private static final DateTimeFormatter PUBLISHED_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
     private final CardLayout cardLayout = new CardLayout();
-    private final JLabel titleLabel = new JLabel();
+    private final JTextArea titleLabel = new JTextArea();
     private final JLabel metaLabel = new JLabel();
     private final JTextArea descriptionArea = new JTextArea();
     private final JButton openLinkButton = new JButton("Artikel öffnen");
@@ -48,10 +48,24 @@ public class ArticleDetailPanel extends JPanel {
         detailPanel.setBorder(BorderFactory.createEmptyBorder(16, 30, 16, 16));
 
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 18f));
+        titleLabel.setLineWrap(true);
+        titleLabel.setWrapStyleWord(true);
+        titleLabel.setEditable(false);
+        titleLabel.setOpaque(false);
+        titleLabel.setFocusable(false);
+
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        titleLabel.setMaximumSize(
+                new Dimension(Integer.MAX_VALUE,
+                        titleLabel.getPreferredSize().height)
+        );
+
         metaLabel.setForeground(Color.GRAY);
+        metaLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+
         headerPanel.add(titleLabel);
         headerPanel.add(Box.createVerticalStrut(6));
         headerPanel.add(metaLabel);
@@ -71,11 +85,12 @@ public class ArticleDetailPanel extends JPanel {
         detailPanel.add(headerPanel, BorderLayout.NORTH);
         detailPanel.add(new JScrollPane(descriptionArea), BorderLayout.CENTER);
         detailPanel.add(footerPanel, BorderLayout.SOUTH);
+
         return detailPanel;
     }
 
     public void showArticle(NewsResponseDto article) {
-        titleLabel.setText("<html><body style='width: 380px'>" + escapeHtml(article.getTitle()) + "</body></html>");
+        titleLabel.setText(article.getTitle());
 
         String published = article.getPublishedAt() != null
                 ? article.getPublishedAt().format(PUBLISHED_FORMATTER)

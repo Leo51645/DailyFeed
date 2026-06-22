@@ -13,9 +13,9 @@ import java.awt.*;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Main application window. Wires together the four regions described in CLAUDE.md:
@@ -36,7 +36,7 @@ public class MainFrame extends JFrame {
     private final MarketOverviewPanel marketOverviewPanel;
     private final JLabel loadedDateLabel = new JLabel("Noch keine Daten geladen.", SwingConstants.CENTER);
 
-    private Map<LocalDate, Map<News_Categories, List<NewsResponseDto>>> allNewsMap = new HashMap<>();
+    private ConcurrentHashMap<LocalDate, Map<News_Categories, List<NewsResponseDto>>> allNewsMap = new ConcurrentHashMap<>();
 
     public MainFrame(YahooFinanceService yahooFinanceService, NewsFetchCoordinator newsFetchCoordinator) {
         super("DailyFeed");
@@ -87,10 +87,10 @@ public class MainFrame extends JFrame {
     }
 
     public void loadInitialData(SplashScreen splash) {
+        LocalDate today = LocalDate.now();
         new SwingWorker<LoadResult, Void>() {
             @Override
             protected LoadResult doInBackground() {
-                LocalDate today = LocalDate.now();
                 Map<News_Categories, List<NewsResponseDto>> news = fetchNews(today);
                 Map<Assets, List<AssetResponseDto>> assets = yahooFinanceService.getAllAssets();
                 return new LoadResult(news, assets);
@@ -102,13 +102,16 @@ public class MainFrame extends JFrame {
                 setVisible(true);
                 try {
                     LoadResult result = get();
-                    LocalDate today = LocalDate.now();
                     newsCategoryPanel.setNews(result.news());
                     marketOverviewPanel.setAssets(today, result.assets());
                     loadedDateLabel.setForeground(Color.GRAY);
                     loadedDateLabel.setText("Angezeigte Daten vom: " + today.format(LOADED_DATE_FORMATTER));
                 } catch (Exception e) {
                     log.error("Failed to load initial data", e);
+                    String cause = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
+                    JOptionPane.showMessageDialog(MainFrame.this,
+                            "Daten konnten nicht geladen werden:\n" + cause,
+                            "Fehler", JOptionPane.ERROR_MESSAGE);
                 }
             }
         }.execute();
@@ -138,8 +141,9 @@ public class MainFrame extends JFrame {
                 } catch (Exception e) {
                     log.error("Failed to load data for {}", date, e);
                     topBarPanel.setError("Fehler beim Laden der Daten.");
+                    String cause = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
                     JOptionPane.showMessageDialog(MainFrame.this,
-                            "Daten konnten nicht geladen werden:\n" + e.getCause(),
+                            "Daten konnten nicht geladen werden:\n" + cause,
                             "Fehler", JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -166,7 +170,7 @@ public class MainFrame extends JFrame {
         }.execute();
     }
 
-    private Map<News_Categories, List<NewsResponseDto>> fetchNews(LocalDate date) {
+    private synchronized Map<News_Categories, List<NewsResponseDto>> fetchNews(LocalDate date) {
         LocalDate today = LocalDate.now();
         if (date.equals(today) || !allNewsMap.containsKey(date)) {
             allNewsMap.putAll(newsFetchCoordinator.combineCachedMissingNews(today));
