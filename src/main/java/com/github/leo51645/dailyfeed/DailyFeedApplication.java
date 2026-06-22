@@ -2,6 +2,7 @@ package com.github.leo51645.dailyfeed;
 
 import com.github.leo51645.dailyfeed.service.NewsFetchCoordinator;
 import com.github.leo51645.dailyfeed.service.YahooFinanceService;
+import com.github.leo51645.dailyfeed.ui.ApiKeySetupDialog;
 import com.github.leo51645.dailyfeed.ui.MainFrame;
 import com.github.leo51645.dailyfeed.ui.SplashScreen;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -10,11 +11,21 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 
 import javax.swing.SwingUtilities;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @SpringBootApplication
 public class DailyFeedApplication {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+
+        if (!apiKeysConfigured()) {
+            SwingUtilities.invokeAndWait(() -> {
+                ApiKeySetupDialog dialog = new ApiKeySetupDialog();
+                dialog.setVisible(true);
+            });
+        }
 
         // Load environment variables from .env into system properties so Spring can access them
         Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
@@ -42,6 +53,17 @@ public class DailyFeedApplication {
             MainFrame mainFrame = new MainFrame(yahooFinanceService, newsFetchCoordinator);
             mainFrame.loadInitialData(splash);
         });
+    }
+
+    private static boolean apiKeysConfigured() {
+        try {
+            Path envPath = Path.of(".env");
+            if (!Files.exists(envPath)) return false;
+            String content = Files.readString(envPath);
+            return content.contains("GEMINI_API_KEY=") && content.contains("CURRENTS_API_KEY=");
+        } catch (IOException e) {
+            return false;
+        }
     }
 
 }
