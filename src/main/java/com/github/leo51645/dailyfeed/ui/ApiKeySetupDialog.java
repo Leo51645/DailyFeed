@@ -21,11 +21,26 @@ public class ApiKeySetupDialog extends JDialog {
     private final JLabel statusLabel = new JLabel(" ", SwingConstants.CENTER);
     private final JButton saveButton = new JButton("Speichern & Starten");
 
+    private final String initialGeminiKey;
+    private final String initialCurrentsKey;
     private boolean completed = false;
+    private boolean keysChanged = false;
 
     public ApiKeySetupDialog() {
+        this("", "", true);
+    }
+
+    public ApiKeySetupDialog(String existingGeminiKey, String existingCurrentsKey) {
+        this(existingGeminiKey, existingCurrentsKey, false);
+    }
+
+    private ApiKeySetupDialog(String existingGeminiKey, String existingCurrentsKey, boolean exitOnClose) {
         super((Frame) null, "DailyFeed – API Keys einrichten", true);
+        this.initialGeminiKey = existingGeminiKey;
+        this.initialCurrentsKey = existingCurrentsKey;
         buildUI();
+        if (!existingGeminiKey.isEmpty()) geminiField.setText(existingGeminiKey);
+        if (!existingCurrentsKey.isEmpty()) currentsField.setText(existingCurrentsKey);
         pack();
         setLocationRelativeTo(null);
         setResizable(false);
@@ -33,7 +48,11 @@ public class ApiKeySetupDialog extends JDialog {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                System.exit(0);
+                if (exitOnClose) {
+                    System.exit(0);
+                } else {
+                    dispose();
+                }
             }
         });
     }
@@ -182,6 +201,7 @@ public class ApiKeySetupDialog extends JDialog {
                         showStatus(error, true);
                         saveButton.setEnabled(true);
                     } else {
+                        keysChanged = !geminiKey.equals(initialGeminiKey) || !currentsKey.equals(initialCurrentsKey);
                         writeKeys(geminiKey, currentsKey);
                         completed = true;
                         dispose();
@@ -234,5 +254,9 @@ public class ApiKeySetupDialog extends JDialog {
 
     public boolean isCompleted() {
         return completed;
+    }
+
+    public boolean keysChanged() {
+        return keysChanged;
     }
 }
