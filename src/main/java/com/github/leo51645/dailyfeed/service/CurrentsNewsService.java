@@ -151,4 +151,15 @@ public class CurrentsNewsService {
         log.info("Total articles fetched for {}: {}", date, allNewsOneDay.size());
         return allNewsOneDay;
     }
+
+    public HttpResponse<String> testApiKey(String currentsApiKey) throws Exception{
+        URI testUrl = URI.create("https://api.currentsapi.services/v2/search?apiKey=" + currentsApiKey);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(testUrl)
+                .GET()
+                .build();
+
+        return client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
 }
