@@ -48,6 +48,11 @@ public class CurrentsNewsService {
         try {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
+            if (response.statusCode() == 400) {
+                log.warn("Currents API returned HTTP 400 for category {} page {} — treating as last page", news_category, pageNumber);
+                return null;
+            }
+
             if (response.statusCode() != 200) {
                 log.error("Currents API returned HTTP {} for category {} page {}", response.statusCode(), news_category, pageNumber);
                 throw new RuntimeException("Currents API error " + response.statusCode() + " for category " + news_category);
@@ -130,6 +135,8 @@ public class CurrentsNewsService {
                 while (isNextPage) {
                     HttpResponse<String> httpResponse = getHttpNewsResponse(news_category, startDate, endDate, i);
                     i++;
+
+                    if (httpResponse == null) break;
 
                     JSONObject root = new JSONObject(httpResponse.body());
                     boolean next_cursorIsNull = root.isNull("next_cursor");
